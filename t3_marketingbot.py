@@ -4,9 +4,8 @@ client=OpenAI()
 
 def generate(request, model, n):
 
-    for i in range(n):
-        print(f"---Version {i+1}---\n")
-        sysprompt = """
+    supports_sampling = model not in ["gpt-5", "gpt-5-mini", "gpt-5-nano"]
+    SYSTEM_PROMPT = """
         Role & Background:
         You are a marketing expert, specialized in creating short, energetic ad speeches for different products and services.
 
@@ -28,17 +27,27 @@ def generate(request, model, n):
         - Tired of your phone dying when you need it most? Our power bank keeps you connected all day.
         - What if learning felt exciting again? With our app, it does.
         """
+    param_sets = [(0.5, 0.9), (0.7, 0.95), (0.9, 1.0)]
+    for i, (temp, top_p) in enumerate(param_sets, start=1):
+        print(f"---Version {i} (Temperature = {temp if supports_sampling else 'N/A'})---\n")
 
-        response=client.responses.create(
-            input=request,
-            instructions=sysprompt,
-            model=model,
-            temperature=0.9,
-            max_output_tokens=500,
-            stream=False
-        )
-    print(response.output_text)
+        try:
+            response = client.responses.create(
+                input=request,
+                instructions=SYSTEM_PROMPT,
+                model=model,
+                **({"temperature": temp, "top_p": top_p} if supports_sampling else {}),  # Only enter these if model is not GPT-5 (supports sampling)
+                max_output_tokens=2000,
+            )
+            # Prints output for both GPT-5 and others
+            print(f"{response.output_text}\n")
 
+
+        except Exception as e:
+            print(f"Error generating version {i+1}: {e}\n")
+
+
+# Return true if user inputs are valid
 def check(request,model):
     allowed_models=["gpt-5","gpt-5-mini","gpt-5-nano","gpt-4.1","gpt-4.1-nano","gpt-4o","gpt-4o-mini"]
     if request and model:
@@ -55,14 +64,13 @@ def check(request,model):
     return False
 
 
-
 def main():
     print("Welcome to marketing material bot interface!\n")
-    request = input("Enter prompt for marketing material: ")
+    prompt = input("Enter prompt for marketing material: ")
     model = input("Model choice: ")
 
-    if check(request,model):
-        generate(request,model,1)
+    if check(prompt,model):
+        generate(prompt,model,3)
 
 if __name__=="__main__":
     main()
