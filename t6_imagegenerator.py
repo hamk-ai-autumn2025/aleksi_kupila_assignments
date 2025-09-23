@@ -45,7 +45,7 @@ def generateImage(args):
         print(f"Error generating image: {e}\n")
 
 def validate_args(args):
-        approved_models = ["black-forest-labs/flux-dev", "black-forest-labs/flux-schnell"]
+        approved_models = ["black-forest-labs/flux-dev", "black-forest-labs/flux-schnell", "bytedance/seedream-4"]
         approved_aspect_ratios = ["1:1", "3:2", "2:3", "16:9", "9:16"]
         approved_formats = ["png", "jpg", "jpeg", "webp"]
 
@@ -64,7 +64,7 @@ def validate_args(args):
         if args.seed is not None and (args.seed < 0 or args.seed > 999999):
             print("Error: Seed must be between 0 and 999999.")
             return False
-        if not args.prompt or not isinstance(args.prompt, str) or len(args.prompt)>400:
+        if not args.prompt or not isinstance(args.prompt, str) or len(args.prompt)>800:
             print("Error: Prompt must be a non-empty string and under 400 characters long.")
             return False
   

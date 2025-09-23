@@ -11,3 +11,10 @@ __pycache__/
 *.png
 *.jpg
 *.jpeg
+
+# Document files
+*.txt
+*.pdf
+*.docx
+*.xlsx
+*.csv
