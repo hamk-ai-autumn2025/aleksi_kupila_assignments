@@ -55,11 +55,11 @@ def generateDescription(image_path, model):
 
 # Generates image and saves it on a file
 def generateImage(description):
-    model = "black-forest-labs/flux-schnell" #"stability-ai/stable-diffusion-3.5-large-turbo" #"bytedance/seedream-4" #"black-forest-labs/flux-dev" 
+    model = "black-forest-labs/flux-dev" #"stability-ai/stable-diffusion-3.5-large-turbo" #"bytedance/seedream-4" #"black-forest-labs/flux-dev" 
     print("---Generating image based on the description---")
     print(f"---Using image generation model: {model}---\n")
     input={
-        "prompt": f"{description},8k,best quality",
+        "prompt": f"photorealistic,ultra realistic,best quality,{description}",
         #"aspect_ratio": "3:2",
         #"negative_prompt": "lowres,blur,low quality,mistake,error",
         #"disable_safety_checker":True
