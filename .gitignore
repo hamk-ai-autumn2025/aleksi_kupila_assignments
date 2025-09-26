@@ -18,3 +18,8 @@ __pycache__/
 *.docx
 *.xlsx
 *.csv
+
+# Audio
+
+*.wav
+*.mp3
