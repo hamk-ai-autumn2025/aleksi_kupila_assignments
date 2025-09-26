@@ -43,9 +43,9 @@ def createTranscription(recording, model="gpt-4o-transcribe"):
     
 def translate(transcription, lang):
     try:
-        print(f"--- Translating into following language: {lang}")
+        print(f"--- Translating into following language: ---{lang}")
         response = client.responses.create(
-        model="gpt-4o-mini",
+        model="gpt-4.1-mini",
         instructions=f"Translate the following text into {lang}.",
         input=transcription
         )
@@ -56,7 +56,7 @@ def translate(transcription, lang):
     return response.output_text
 
 def createTTS(translation, recording):
-    print("--- Generating TTS: ---\n")
+    print("--- Generating TTS: ---")
     response = client.audio.speech.create(
     model="tts-1",
     voice="alloy", # alloy, echo, fable, onyx, nova, and shimmer
