@@ -1,5 +1,5 @@
 from openai import OpenAI
-from file_util import find_new_file_name
+from aleksiK_assignments.utils.file_util import find_new_file_name
 
 client = OpenAI()
 

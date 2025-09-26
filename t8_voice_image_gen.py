@@ -1,13 +1,14 @@
 from openai import OpenAI
 from queue import Queue
-from audio_util import Push_to_talk
+from aleksiK_assignments.utils.audio_util import Push_to_talk
 from pynput import keyboard
-from openai_utils import create_translation
+from aleksiK_assignments.utils.openai_utils import create_translation
 import time
 import threading
 
 transcribe_queue = Queue()
 
+# If left shift is pressed, start recording
 def on_press(recorder, key):
         try:
             if key == keyboard.Key.shift:
@@ -15,6 +16,7 @@ def on_press(recorder, key):
         except AttributeError:
             pass
     
+# If left shift is released, stop recording, generate transcription and push it in the queue
 def on_release(recorder, key):
     try:
         if key == keyboard.Key.shift:
@@ -27,8 +29,6 @@ def on_release(recorder, key):
                 threading.Thread(target=worker, args=[filename,"whisper-1",True]).start()
     except AttributeError:
         pass
-    
-
 
 def main():
     recorder = Push_to_talk(device=12, samplerate=48000, channels=1)  # New recorder object

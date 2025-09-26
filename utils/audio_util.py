@@ -2,7 +2,6 @@ import sounddevice as sd
 import soundfile as sf
 import numpy as np
 import time
-from pynput import keyboard
 
 class Push_to_talk:
     def __init__(self, device=12, samplerate=48000, channels=1):
