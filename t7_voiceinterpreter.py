@@ -43,7 +43,7 @@ def createTranscription(recording, model="gpt-4o-transcribe"):
     
 def translate(transcription, lang):
     try:
-        print(f"--- Translating into following language: ---{lang}")
+        print(f"--- Translating into following language: {lang} ---")
         response = client.responses.create(
         model="gpt-4.1-mini",
         instructions=f"Translate the following text into {lang}.",
