@@ -25,7 +25,16 @@ def recordSpeech(seconds, device=12, samplerate=48000, channels=1):
     return filenameRecording
     
 
-def createTranscription(recording, model="gpt-4o-transcribe"):
+def createTranscription(recording, model="gpt-4o-transcribe", saveOutput=False) -> str:
+    '''
+    Returns string transcription of an audio file. Uses OpenAI API.
+
+    Args:
+        Audio file path (str), LLM to use (str), Save output to a text file (bool)
+
+    Returns:
+        String transcription of the speech in the audio file
+    '''
     print ("--- Transcribing... ---")
 
     with open (recording, "rb") as audio_file:
@@ -35,6 +44,11 @@ def createTranscription(recording, model="gpt-4o-transcribe"):
             file=audio_file,
             )
             print(f'Transcription: {transcription.text}\n')
+            if saveOutput:
+                filename = find_new_file_name("transcription.txt")
+                with open(filename, "w", encoding="utf-8") as f:
+                    f.write(transcription.text)
+                    print(f"Final output saved to {filename}")
         except Exception as e:
             print(f'Error creating transcription: {e}')
             return None
