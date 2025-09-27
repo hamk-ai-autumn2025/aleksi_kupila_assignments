@@ -3,7 +3,7 @@ import replicate
 import requests
 import argparse
 import base64
-from aleksiK_assignments.utils.file_util import find_new_file_name
+from aleksiK_assignments.assignments.utils.file_util import find_new_file_name
 
 client=OpenAI()
 

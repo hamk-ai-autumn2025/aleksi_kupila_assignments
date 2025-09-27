@@ -1,7 +1,7 @@
 from openai import OpenAI
 import sounddevice as sd
 import time
-from aleksiK_assignments.utils.file_util import find_new_file_name
+from aleksiK_assignments.assignments.utils.file_util import find_new_file_name
 import soundfile as sf
 import argparse
 

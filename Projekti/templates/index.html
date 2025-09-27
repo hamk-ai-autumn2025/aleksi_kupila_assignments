@@ -13,19 +13,27 @@
         </form>
     </div>
 
-  <div class="mb-3" id="suggestionArea">
+{% if error %}
+  <div class="alert alert-danger">{{ error }}</div>
+{% endif %}
+
+{% if suggestion %}
+  <div id="suggestionArea" class="mb-3">
     <h3>AI Suggested Commands</h3>
-    <form method="post">
-        <div class="mb-3">
-            {% if suggestion %}
-              <h4>{{suggestion}}</h4>
-            {% else %}
-              <h4>No suggestion yet</h4>
-            {% endif %}
+    <form method="post" action="/run">
+      {% for cmd in suggestion %}
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="approved_cmd" id="cmd{{ loop.index }}" value="{{ cmd.command }}" {% if loop.first %}checked{% endif %}>
+          <label class="form-check-label" for="cmd{{ loop.index }}">
+            <strong>Tool:</strong> {{ cmd.tool }} &nbsp; <strong>Command:</strong> <code>{{ cmd.command }}</code>
+          </label>
         </div>
-        <button type="submit" class="btn btn-primary">Run in Docker (executor)</button>
+      {% endfor %}
+      <br/>
+      <button type="submit" class="btn btn-success">Run in Docker (executor)</button>
     </form>
   </div>
+{% endif %}
 
   <div id="outputArea" style="display:none">
     <h3>Raw Output</h3>
