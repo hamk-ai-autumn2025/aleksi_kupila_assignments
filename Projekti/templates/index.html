@@ -1,21 +1,27 @@
-{% load static %}
 {% extends "layout.html" %}
 {% block title %}Cybersecurity adversary simulator{% endblock %}
 
 {% block content %}
     <h2>AI Adversary Simulator — PoC</h2>
-  <form id="reqForm">
-    <label>Instruction (natural language):</label><br/>
-    <textarea id="user_request">Scan poc_target for open ports and services</textarea><br/>
-    <button class="btn" id="suggestBtn" type="button">Get Command Suggestion</button>
-  </form>
+    <div class="mb-3" id="requestArea">
+        <form method="post">
+            <div class="mb-3">
+                <label class="form-label">Instruction (natural language):</label><br/>
+                <textarea class="form-control" id="user_request"></textarea><br/>
+            </div>
+        <button type="submit" class="btn btn-primary">Get Command Suggestion</button>
+        </form>
+    </div>
 
-  <div id="suggestionArea" style="display:none">
+  <div class="mb-3" id="suggestionArea">
     <h3>AI Suggested Commands</h3>
-    <pre id="ai_suggest"></pre>
-    <label>Approve command to run:</label><br/>
-    <input id="approved_cmd" style="width:80%"/>
-    <button class="btn" id="runBtn">Run in Docker (executor)</button>
+    <form method="post">
+        <div class="mb-3">
+            <label class="form-label">Approve command to run:</label><br/>
+            <input id="approved_cmd" style="width:80%"/>
+        </div>
+        <button type="submit" class="btn btn-primary">Run in Docker (executor)</button>
+    </form>
   </div>
 
   <div id="outputArea" style="display:none">
