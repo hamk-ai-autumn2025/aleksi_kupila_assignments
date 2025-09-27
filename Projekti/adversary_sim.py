@@ -12,9 +12,10 @@ def index():
 def suggest():
     instruction = request.form["instruction"]
     if instruction:
-        return render_template('index.html', instruction = instruction)
+        command_suggestion = ask_model(instruction, 400)
+        return render_template('index.html', suggestion = command_suggestion)
     else:
-        return render_template('index.html', instruction = "Please enter instruction")
+        return render_template('index.html', suggestion = "Please enter instruction")
 
 def valid_command(command):
     return None

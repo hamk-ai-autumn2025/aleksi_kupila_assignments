@@ -17,10 +17,10 @@
     <h3>AI Suggested Commands</h3>
     <form method="post">
         <div class="mb-3">
-            {% if instruction %}
-              <h4>{{instruction}}</h4>
+            {% if suggestion %}
+              <h4>{{suggestion}}</h4>
             {% else %}
-              <h4>No instruction yet</h4>
+              <h4>No suggestion yet</h4>
             {% endif %}
         </div>
         <button type="submit" class="btn btn-primary">Run in Docker (executor)</button>

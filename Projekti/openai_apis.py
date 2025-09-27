@@ -26,8 +26,9 @@ def ask_model(prompt, max_tokens=400):
     resp = client.responses.create(
         model="gpt-4.1-mini",
         instructions=SUGGEST_PROMPT,
-        prompt=prompt,
+        input=prompt,
         temperature=0.0,
-        max_tokens=max_tokens
+        max_output_tokens=max_tokens
     )
-    return resp["choices"][0]["message"]["content"]
+    print(resp.output_text)
+    return resp.output_text
