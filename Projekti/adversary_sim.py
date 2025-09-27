@@ -25,7 +25,7 @@ def extract_json(text):
     # give up
     raise ValueError("Could not parse JSON from model output")
 
-# --- Validate JSON file structure
+# --- Validate JSON file structure ---
 def validateStructure(commands):
     if not isinstance(commands, list):
         return False
@@ -37,6 +37,7 @@ def validateStructure(commands):
             return False
     return True
 
+# --- Basic command safety check ---
 def valid_command(command):
     ALLOWED_TARGETS = ["dvwa", "poc_target", "localhost", "127.0.0.1"]
     # If command contains dangerous characters
@@ -51,16 +52,19 @@ def valid_command(command):
         return False, "Command target not allowed; must target local test containers"
     return True, ""
 
+# --- When user clicks "Get command suggestion" button
 @app.route('/suggest', methods=['POST'])
 def suggest():
     instruction = request.form["instruction"]
     if instruction:
+        # Request LLM for a command
         command_suggestions = ask_model(instruction, 400)
+        # If suggestion is EMPTY
         if command_suggestions == "[]":
             return render_template('index.html', suggestion=None, error=f"AI answer was empty. Maybe the prompt asked for a forbidden command?\nAI raw: {command_suggestions}")
         try:
-            commands = extract_json(command_suggestions)
-            if validateStructure(commands):
+            commands = extract_json(command_suggestions)  # Try extracting JSON 
+            if validateStructure(commands):  # If JSON structure is valid
                 return render_template('index.html', suggestion=commands, error=None)
             else:
                 return render_template('index.html', suggestion=None, error=f"Failed to validate JSON structure\nAI raw: {commands}")
@@ -68,6 +72,7 @@ def suggest():
             return render_template("index.html", suggestion=None, error=f"Failed to parse AI JSON: {e}\nAI raw: {command_suggestions}")
     return render_template('index.html', suggestion = None, error="Please enter instructions above")
 
+# --- When user clicks "Execute command in docker" button
 @app.route('/run', methods=['POST'])
 def run():
     command = request.form['approved_cmd']
@@ -75,10 +80,14 @@ def run():
         ok, reason = valid_command(command)
         if not ok:
             return render_template("index.html", suggestion=None, error=f"Command rejected: {reason}")
+        # At this point, command is recognized as VALID by basic safety checks
+
+
         return render_template('index.html', instruction = False, error="VALID!")
     else:
         return render_template('index.html', instruction = False, error="No command selected to run")
     
+# --- Main page ---
 @app.route('/', methods=['GET'])
 def index():
     return render_template('index.html', instruction = False)
