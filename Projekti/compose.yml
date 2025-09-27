@@ -1,0 +1,21 @@
+services:
+  dvwa:
+    image: vulnerables/web-dvwa
+    ports:
+      - "8080:80"   # expose DVWA on localhost:8080
+    container_name: poc_target
+    environment:
+      MYSQL_USER: dvwa
+      MYSQL_PASSWORD: dvwa
+      MYSQL_DATABASE: dvwa
+      MYSQL_ROOT_PASSWORD: root
+    restart: unless-stopped
+
+  executor:
+    image: instrumentisto/nmap   # or a custom image with tools installed
+    container_name: poc_executor
+    depends_on:
+      - dvwa
+    # command: ["sleep", "infinity"]   # keep container alive
+    # OR: run one-off scan
+    command: ["nmap", "-p", "80", "dvwa"]
