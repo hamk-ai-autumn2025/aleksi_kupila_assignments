@@ -5,6 +5,7 @@ from openai_apis import ask_model
 app = Flask(__name__)
 
 ALLOWED_TOOLS = {"nmap", "nikto"}
+FORBIDDEN_CHARS = [";", "&", "|", "`", "$(", ">", "<"]
 
 # --- Extract JSON file from AI output ---
 def extract_json(text):
@@ -36,15 +37,27 @@ def validateStructure(commands):
             return False
     return True
 
-@app.route('/', methods=['GET'])
-def index():
-    return render_template('index.html', instruction = False)
+def valid_command(command):
+    ALLOWED_TARGETS = ["dvwa", "poc_target", "localhost", "127.0.0.1"]
+    # If command contains dangerous characters
+    if any(ch in command for ch in FORBIDDEN_CHARS):
+        return False, "Command contains forbidden characters"
+    # check tool presence
+    cmd_lower = command.strip().lower()
+    if not any(cmd_lower.startswith(t + " ") or (" " + t + " ") in cmd_lower for t in ALLOWED_TOOLS):
+        return False, "Command does not use an allowed tool"
+    # Cheack if target machine is an allowed target
+    if not any(t in command for t in ALLOWED_TARGETS):
+        return False, "Command target not allowed; must target local test containers"
+    return True, ""
 
 @app.route('/suggest', methods=['POST'])
 def suggest():
     instruction = request.form["instruction"]
     if instruction:
         command_suggestions = ask_model(instruction, 400)
+        if command_suggestions == "[]":
+            return render_template('index.html', suggestion=None, error=f"AI answer was empty. Maybe the prompt asked for a forbidden command?\nAI raw: {command_suggestions}")
         try:
             commands = extract_json(command_suggestions)
             if validateStructure(commands):
@@ -54,3 +67,18 @@ def suggest():
         except Exception as e:
             return render_template("index.html", suggestion=None, error=f"Failed to parse AI JSON: {e}\nAI raw: {command_suggestions}")
     return render_template('index.html', suggestion = None, error="Please enter instructions above")
+
+@app.route('/run', methods=['POST'])
+def run():
+    command = request.form['approved_cmd']
+    if command:
+        ok, reason = valid_command(command)
+        if not ok:
+            return render_template("index.html", suggestion=None, error=f"Command rejected: {reason}")
+        return render_template('index.html', instruction = False, error="VALID!")
+    else:
+        return render_template('index.html', instruction = False, error="No command selected to run")
+    
+@app.route('/', methods=['GET'])
+def index():
+    return render_template('index.html', instruction = False)

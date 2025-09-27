@@ -35,10 +35,12 @@
   </div>
 {% endif %}
 
+{% if approved_command %}
   <div id="outputArea" style="display:none">
     <h3>Raw Output</h3>
     <pre id="raw_out"></pre>
     <h3>AI Analysis</h3>
     <pre id="analysis"></pre>
   </div>
+{% endif %}
 {% endblock %}
