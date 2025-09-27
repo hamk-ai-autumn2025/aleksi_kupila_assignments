@@ -4,10 +4,10 @@
 {% block content %}
     <h2>AI Adversary Simulator — PoC</h2>
     <div class="mb-3" id="requestArea">
-        <form method="post">
+        <form method="post" action="/suggest">
             <div class="mb-3">
                 <label class="form-label">Instruction (natural language):</label><br/>
-                <textarea class="form-control" id="user_request"></textarea><br/>
+                <textarea class="form-control" id="user_request" name="instruction"></textarea><br/>
             </div>
         <button type="submit" class="btn btn-primary">Get Command Suggestion</button>
         </form>
@@ -17,8 +17,11 @@
     <h3>AI Suggested Commands</h3>
     <form method="post">
         <div class="mb-3">
-            <label class="form-label">Approve command to run:</label><br/>
-            <input id="approved_cmd" style="width:80%"/>
+            {% if instruction %}
+              <h4>{{instruction}}</h4>
+            {% else %}
+              <h4>No instruction yet</h4>
+            {% endif %}
         </div>
         <button type="submit" class="btn btn-primary">Run in Docker (executor)</button>
     </form>
