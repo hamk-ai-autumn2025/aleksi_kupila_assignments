@@ -35,7 +35,7 @@
   </div>
 {% endif %}
 
-{% if approved_command %}
+{% if command_executed %}
   <div id="outputArea" style="display:none">
     <h3>Raw Output</h3>
     <pre id="raw_out"></pre>
@@ -43,4 +43,5 @@
     <pre id="analysis"></pre>
   </div>
 {% endif %}
+
 {% endblock %}

@@ -1,12 +1,14 @@
-import shlex
+import shlex, uuid, time
 from flask import Flask, request, render_template
 from openai_apis import ask_model
 from checks import extract_json, validateStructure, valid_command
+from utils import write_json
 import subprocess
+
 
 app = Flask(__name__)
 
-
+# --- Runs command inside a docker container
 def run_command(command: list[str]):
      # Convert "nmap -sV dvwa" -> ["nmap", "-sV", "dvwa"]
     args = shlex.split(command)
@@ -17,8 +19,7 @@ def run_command(command: list[str]):
         capture_output=True,
         text=True
     )
-    print(result)
-    return result.stdout
+    return result
     
 # --- When user clicks "Get command suggestion" button
 @app.route('/suggest', methods=['POST'])
@@ -49,11 +50,13 @@ def run():
         if not ok:
             return render_template("index.html", suggestion=None, error=f"Command rejected: {reason}")
         # At this point, command is recognized as VALID by basic safety checks
-        print(run_command(command))
+        command_output = (run_command(command))
+        print(command_output.stdout)
+        write_json(command, command_output)
 
-        return render_template('index.html', instruction = False, error="VALID!")
+        return render_template('index.html', suggestion = None, error="Success!")
     else:
-        return render_template('index.html', instruction = False, error="No command selected to run")
+        return render_template('index.html', suggestion = False, error="No command selected to run")
     
 # --- Main page ---
 @app.route('/', methods=['GET'])

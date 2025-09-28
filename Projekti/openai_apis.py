@@ -10,7 +10,6 @@ Return JSON array of commands like:
   {"tool":"nmap", "command":"nmap -sV poc_target -p 80"}
 ]
 Only suggest safe scanning commands (no OS exploits, no file writes). For ports use -p flag if needed.
-User request: {request}
 """
 
 ANALYZE_PROMPT = """
@@ -19,11 +18,12 @@ You are a cybersecurity analyst. Analyze the following tool output and:
 2) List severity: High/Medium/Low for each issue mentioned.
 3) Suggest concrete mitigations.
 Return a concise bullet list.
-Tool output:
-{output}
 """
 
 def ask_model(prompt, max_tokens=400):
+    '''
+    Ask model for a command suggestion
+    '''
     resp = client.responses.create(
         model="gpt-4.1-mini",
         instructions=SUGGEST_PROMPT,
@@ -31,5 +31,19 @@ def ask_model(prompt, max_tokens=400):
         temperature=0.0,
         max_output_tokens=max_tokens
     )
+    print(resp.output_text)
+    return resp.output_text
+
+def ask_analysis(prompt, max_tokens=400):
+    '''
+    Ask model for command output analysis
+    '''
+    resp = client.responses.create(
+          model="gpt-4.1-mini",
+          instructions=ANALYZE_PROMPT,
+          input=prompt,
+          temperature=0.0,
+          max_output_tokens=max_tokens
+      )
     print(resp.output_text)
     return resp.output_text
