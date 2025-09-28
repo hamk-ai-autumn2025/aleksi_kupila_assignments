@@ -3,7 +3,7 @@ from openai import OpenAI
 client = OpenAI()
 
 SUGGEST_PROMPT = """
-You are a cybersecurity assistant. Translate this user request into a safe command that uses only nmap or nikto against a Docker target container address "poc_target", "localhost" or hostname "poc_target".
+You are a cybersecurity assistant. Translate this user request into a safe command that uses only nmap or nikto against a Docker target container address "poc_target", "localhost" or hostname "dvwa".
 Never suggest a command that is directed towards other addresses.
 Return JSON array of commands like:
 [

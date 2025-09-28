@@ -1,6 +1,7 @@
-import json, re
+import json, re, shlex
 from flask import Flask, request, render_template
 from openai_apis import ask_model
+import subprocess
 
 app = Flask(__name__)
 
@@ -52,6 +53,24 @@ def valid_command(command):
         return False, "Command target not allowed; must target local test containers"
     return True, ""
 
+def run_command(command: list[str]):
+     # Convert "nmap -sV dvwa" -> ["nmap", "-sV", "dvwa"]
+    args = shlex.split(command)
+    # Final check
+    tool = args[0]
+
+    if tool not in ALLOWED_TOOLS:
+        raise ValueError(f"Command not allowed: {tool}")
+    
+    print(f'Running command: {command} in docker container instrumentisto/nmap')
+    result = subprocess.run(
+        ["docker", "run", "--rm", "--network=projekti_pocnet", "instrumentisto/nmap"] + args,
+        capture_output=True,
+        text=True
+    )
+    print(result)
+    return result.stdout
+    
 # --- When user clicks "Get command suggestion" button
 @app.route('/suggest', methods=['POST'])
 def suggest():
@@ -81,7 +100,7 @@ def run():
         if not ok:
             return render_template("index.html", suggestion=None, error=f"Command rejected: {reason}")
         # At this point, command is recognized as VALID by basic safety checks
-
+        print(run_command(command))
 
         return render_template('index.html', instruction = False, error="VALID!")
     else:
