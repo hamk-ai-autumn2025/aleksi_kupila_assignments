@@ -1,67 +1,16 @@
-import json, re, shlex
+import shlex
 from flask import Flask, request, render_template
 from openai_apis import ask_model
+from checks import extract_json, validateStructure, valid_command
 import subprocess
 
 app = Flask(__name__)
 
-ALLOWED_TOOLS = {"nmap", "nikto"}
-FORBIDDEN_CHARS = [";", "&", "|", "`", "$(", ">", "<"]
-
-# --- Extract JSON file from AI output ---
-def extract_json(text):
-    try:
-        return json.loads(text)
-    except Exception:
-        pass
-    # try to find first [...] block
-    m = re.search(r'(\[.*\])', text, re.S)
-    if m:
-        candidate = m.group(1)
-        # try json
-        try:
-            return json.loads(candidate)
-        except Exception:
-            pass
-    # give up
-    raise ValueError("Could not parse JSON from model output")
-
-# --- Validate JSON file structure ---
-def validateStructure(commands):
-    if not isinstance(commands, list):
-        return False
-    
-    for cmd in commands:
-        if not isinstance(cmd, dict) or "command" not in cmd or "tool" not in cmd:
-            return False
-        if cmd.get("tool") not in ALLOWED_TOOLS:
-            return False
-    return True
-
-# --- Basic command safety check ---
-def valid_command(command):
-    ALLOWED_TARGETS = ["dvwa", "poc_target", "localhost", "127.0.0.1"]
-    # If command contains dangerous characters
-    if any(ch in command for ch in FORBIDDEN_CHARS):
-        return False, "Command contains forbidden characters"
-    # check tool presence
-    cmd_lower = command.strip().lower()
-    if not any(cmd_lower.startswith(t + " ") or (" " + t + " ") in cmd_lower for t in ALLOWED_TOOLS):
-        return False, "Command does not use an allowed tool"
-    # Cheack if target machine is an allowed target
-    if not any(t in command for t in ALLOWED_TARGETS):
-        return False, "Command target not allowed; must target local test containers"
-    return True, ""
 
 def run_command(command: list[str]):
      # Convert "nmap -sV dvwa" -> ["nmap", "-sV", "dvwa"]
     args = shlex.split(command)
-    # Final check
-    tool = args[0]
 
-    if tool not in ALLOWED_TOOLS:
-        raise ValueError(f"Command not allowed: {tool}")
-    
     print(f'Running command: {command} in docker container instrumentisto/nmap')
     result = subprocess.run(
         ["docker", "run", "--rm", "--network=projekti_pocnet", "instrumentisto/nmap"] + args,
