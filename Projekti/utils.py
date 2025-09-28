@@ -22,7 +22,7 @@ def find_new_file_name(base_name: str) -> str:
             return new_name
         i += 1
 
-def write_json(command, output):
+def write_json(command, output, analysis):
     '''
     Write nmap command output to a json file
     '''
@@ -31,9 +31,10 @@ def write_json(command, output):
         "id": str(uuid.uuid4()),
         "timestamp": time.time(),
         "command": command,
-        "stdout": output.stdout,
-        "stderr": output.stderr,
-        "exit_code": output.returncode
+        "stdout": output,
+        "stderr": "",
+        "exit_code": None,
+        'ai_analysis': analysis
     }
     with open(filename, 'w') as f:
-        json.dump(record, f)
+        json.dump(record, f, indent=4, ensure_ascii=False)

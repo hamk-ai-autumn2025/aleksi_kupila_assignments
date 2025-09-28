@@ -1,9 +1,8 @@
-import shlex, uuid, time
+import shlex, subprocess
 from flask import Flask, request, render_template
-from openai_apis import ask_model
+from openai_apis import ask_model, ask_analysis
 from checks import extract_json, validateStructure, valid_command
 from utils import write_json
-import subprocess
 
 
 app = Flask(__name__)
@@ -51,13 +50,22 @@ def run():
             return render_template("index.html", suggestion=None, error=f"Command rejected: {reason}")
         # At this point, command is recognized as VALID by basic safety checks
         command_output = (run_command(command))
+        ai_analysis = ask_analysis(command_output.stdout)
         print(command_output.stdout)
-        write_json(command, command_output)
+        print(ai_analysis)
 
-        return render_template('index.html', suggestion = None, error="Success!")
+        return render_template('index.html', command=command, command_output = command_output.stdout, ai_analysis = ai_analysis, error="Success!")
     else:
         return render_template('index.html', suggestion = False, error="No command selected to run")
     
+# --- When user clicks "Save output (JSON)" button
+@app.route('/save', methods = ['POST'])
+def save_output():
+    command = request.form.get('command')
+    raw_output = request.form['command_output']
+    analysis = request.form['ai_analysis']
+    write_json(command, raw_output, analysis)
+    return render_template('index.html', error="Output saved!")
 # --- Main page ---
 @app.route('/', methods=['GET'])
 def index():

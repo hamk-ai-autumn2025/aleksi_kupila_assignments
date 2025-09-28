@@ -35,13 +35,24 @@
   </div>
 {% endif %}
 
-{% if command_executed %}
-  <div id="outputArea" style="display:none">
+{% if command_output %}
+<form method="post" action="/save">
+  <div id="outputArea" class="mb-3">
     <h3>Raw Output</h3>
-    <pre id="raw_out"></pre>
+    <div class="mb-3">
+      <input type="hidden" name="command" value="{{ command|escape }}">
+      <textarea class="form-control" id="raw_out" name="command_output" rows="6" readonly>{{ command_output }}</textarea>
+    </div>
+
     <h3>AI Analysis</h3>
-    <pre id="analysis"></pre>
+    <div class="mb-3">
+      <textarea class="form-control" id="analysis" name="ai_analysis" rows="6" readonly>{{ ai_analysis }}</textarea>
+    </div>
   </div>
+
+  <button type="submit" class="btn btn-success">Save output (JSON)?</button>
+</form>
 {% endif %}
+
 
 {% endblock %}
