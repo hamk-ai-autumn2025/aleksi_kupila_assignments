@@ -1,0 +1,62 @@
+{% extends 'todo_app/base.html' %}
+
+{% block title %}Add Task{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10">
+        <div class="card shadow-lg">
+            <div class="card-header bg-primary text-white">
+                <h1 class="h4 mb-0"><i class="bi bi-plus-circle me-2"></i>Add New Task</h1>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <label for="{{ form.title.id_for_label }}" class="form-label fw-semibold">
+                                <i class="bi bi-tag me-1"></i>Title <span class="text-danger">*</span>
+                            </label>
+                            {{ form.title }}
+                            {% if form.title.errors %}
+                                <div class="invalid-feedback d-block">{{ form.title.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12 mb-3">
+                            <label for="{{ form.description.id_for_label }}" class="form-label fw-semibold">
+                                <i class="bi bi-textarea me-1"></i>Description
+                            </label>
+                            {{ form.description }}
+                            <div class="form-text">Optional longer description of your task.</div>
+                            {% if form.description.errors %}
+                                <div class="invalid-feedback d-block">{{ form.description.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.due_date.id_for_label }}" class="form-label fw-semibold">
+                                <i class="bi bi-calendar me-1"></i>Due Date
+                            </label>
+                            {{ form.due_date }}
+                            <div class="form-text">Leave blank if no specific deadline.</div>
+                            {% if form.due_date.errors %}
+                                <div class="invalid-feedback d-block">{{ form.due_date.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary flex-grow-1">
+                            <i class="bi bi-check-circle me-2"></i>Add Task
+                        </button>
+                        <a href="{% url 'task_list' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle me-2"></i>Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
