@@ -1,8 +1,7 @@
 from openai import OpenAI
 from queue import Queue
-from aleksiK_assignments.assignments.utils.file_util import Push_to_talk
 from pynput import keyboard
-from aleksiK_assignments.assignments.utils.file_util import create_translation
+from utils.audio_util import create_translation, Push_to_talk
 import time
 import threading
 

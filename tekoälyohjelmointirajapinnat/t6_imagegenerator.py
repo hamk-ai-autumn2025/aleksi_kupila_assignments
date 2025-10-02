@@ -2,7 +2,7 @@ import replicate
 import requests
 import argparse
 from random import randint
-from aleksiK_assignments.assignments.utils.file_util import find_new_file_name
+from utils.file_util import find_new_file_name
 
 def generateImage(args):
 
