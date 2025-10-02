@@ -1,0 +1,95 @@
+{% extends "lainaamo/basepage.html" %}
+{% load static %}
+{% block title %}Lainaamo{% endblock %}
+
+{% block content %}
+
+    <div id="main-content" tabindex="-1">
+        {% if user.is_authenticated %}
+            <div class="welcome-message-authenticated">
+                <div class="row justify-content-md-center">
+                    <div class="col col-lg-2">
+                        <p class="mb-0">Welcome back, {{ user.username }}!</p>
+                    </div>
+                    <div class="col">
+                        <a href="{% url 'lainaamo:my_loans' %}" class="btn btn-sm btn-outline-secondary">View My Loans</a>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="welcome-message-regular">
+                <div class="row justify-content-md-center">
+                    <div class="col">
+                        <p class="mb-0">
+                            Discover and borrow amazing artworks. 
+                            <a href="{% url 'lainaamo:login' %}" class="btn btn-sm btn-outline-secondary">Log in</a> or 
+                            <a href="{% url 'lainaamo:signup' %}" class="btn btn-sm btn-outline-secondary">sign up</a> to get started.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+        <section class="filter-menu" aria-labelledby="filter-heading">
+            <h2 class="header-2" id="filter-heading">Find artworks</h2>
+            <form method="get" action="{% url 'lainaamo:index' %}" class="filter-form">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div role="search">
+                            <label class="form-label" for="search">Search by name:</label>
+                            <input class="form-control" role="search" type="search" id="search" name="search" placeholder="Enter artwork name" autofocus=true>
+                            <small id="search-help" class="form-text text-muted">Enter full or partial artwork name to search.</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="tags" class="form-label">Tags:</label>
+                        <select name="tags" id="tags" class="form-select">
+                            <option value="">Any</option>
+                            {% for tag in tags_selected %}
+                                <option value="{{ tag.id }}">{{ tag }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="artist" class="form-label">Artist:</label>
+                        <select name="artist" id="artist" class="form-select">
+                            <option value="">Any</option>
+                            {% for artist in artists %}
+                                <option value="{{ artist.id }}">{{ artist }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-dark w-100">Apply Filters</button>
+                    </div>
+                </div>
+            </form>
+        </section>
+        <div class="row">
+            {% if available_works %}
+                {% for work in available_works %}
+                    <div class="col-sm-6 col-md-4 col-lg-3 g-3">
+                        <article class="card text-bg-dark">
+                            <img src="{{ work.image.url }}" class="card-img-top" alt="{{ work.name }}">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ work.name }}</h5>
+                                <p class="card-text text-white-50">{{ work.artistStr }}</p>
+                            </div>
+                            <div class="card-footer">
+                                <a href="{% url 'lainaamo:detail' work.id %}" class="btn btn-sm btn-outline-light w-100">View Details</a>
+                            </div>
+                        </article>
+                    </div>
+                {% endfor %}
+                <div class="container text-center">
+                    <p class="artowork-count">Showing {{ available_works.count }} artworks in total</p>
+                </div>
+            {% else %}
+                <div class="col-12 text-center py-5">
+                    <div class="alert alert-info" role="alert">
+                        <p class="mb-0">No artworks available matching your criteria.</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

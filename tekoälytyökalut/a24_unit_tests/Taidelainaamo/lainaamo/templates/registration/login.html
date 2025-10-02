@@ -1,0 +1,36 @@
+{% extends "lainaamo/basepage.html" %}
+{% load static %}
+{% block title %}Lainaamo- Login{% endblock %}
+
+{% block content %}
+  {% if not user.is_authenticated %}
+    <form method="post">
+      {% csrf_token %}
+      <h2>Login</h2>
+      <div class="mb-3 w-50">
+        {{ form.username.label_tag }}
+        {{ form.username }}
+      </div>
+      <div class="mb-3 w-50">
+        {{ form.password.label_tag }}
+        {{ form.password }}
+      </div>
+      {% if form.non_field_errors %}
+        <div class="text-danger" id="server-errors">
+        {% for error in form.non_field_errors %}
+          <p>{{ error }}</p>
+        {% endfor %}
+        </div>
+      {% endif %} 
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert alert-warning">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+      <button type="submit" class="btn btn-sm btn-outline-dark w-25">Log In</button>
+    </form>
+  {% else %}
+    <h2>Hello, {{user.username}}!</h2>
+    <h5>Explore artworks on the <a href="{% url 'lainaamo:index' %}" class="btn btn-sm btn-outline-secondary">main page?</a></h5>
+  {% endif %}
+{% endblock %}

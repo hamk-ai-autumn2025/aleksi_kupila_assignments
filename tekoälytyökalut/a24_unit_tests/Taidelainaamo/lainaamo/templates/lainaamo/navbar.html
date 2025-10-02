@@ -1,0 +1,31 @@
+<nav class="navbar bg-dark border-bottom border-body sticky-top" data-bs-theme="dark">
+    <div class="container d-flex flex-row align-items-center">
+        <a class="navbar-brand" href="{% url 'lainaamo:index' %}">
+            <h1 class="h4 mb-0">Taidelainaamo</h1>
+        </a>
+        {% if user.is_authenticated %}
+        <ul class="nav-item dropdown" data-bs-theme="light">
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Logged in as {{ user.username }}
+                </a>
+                <ul class="dropdown-menu mb-0">
+                    <li><a class="dropdown-item" href="{% url 'lainaamo:my_loans' %}">My loans</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <form action="{% url 'lainaamo:logout' %}" method="post" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="dropdown-item">Log Out</button>
+                        </form>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+        {% else %}
+        <div class="d-flex gap-4">
+            <a class="btn btn-sm btn-outline-light text-white" href="{% url 'lainaamo:login' %}">Log in</a>
+            <a class="btn btn-sm btn-outline-light text-white" href="{% url 'lainaamo:signup' %}">Sign up</a>
+        </div>
+        {% endif %}
+    </div>
+</nav>

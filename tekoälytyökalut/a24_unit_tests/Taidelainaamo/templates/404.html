@@ -1,0 +1,15 @@
+{% extends "lainaamo/basepage.html" %}
+{% load static %}
+{% block title %}404 - bad request{% endblock %}
+
+{% block content %}
+    <div class="container d-flex justify-content-center align-items-center flex-column">
+        <div class="text-center">
+            <h2 class="h-2">404 - bad request</h2>
+            <h5 class="h-5 text-muted">The site you're trying to access does not exist</h5>
+        </div>
+        <div class="spinning-fish">
+            <img src="{% static 'lainaamo/images/spinning-fish.gif'%}"></img>
+        </div>
+    </div>
+{% endblock %}

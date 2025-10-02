@@ -1,0 +1,23 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="{% static 'bootstrap/bootstrap.min.css' %}">
+        <script src="{% static 'bootstrap/bootstrap.bundle.min.js' %}"></script>
+        <link rel="stylesheet" href="{% static 'style/style.css' %}">
+    </head>
+    <body>
+        <main class="container d-flex justify-content-center align-items-center flex-column">
+            <div class="text-center">
+                <h2 class="h-2">GOOD JOB!</h2>
+                <h5 class="h-5 text-muted">You locked yourself out and found the secret fish page</h5>
+            </div>
+            <div class="spinning-fish">
+                <img src="{% static 'lainaamo/images/spinning-fish.gif'%}"></img>
+            </div>
+        </main>
+    </body>
+</html>
