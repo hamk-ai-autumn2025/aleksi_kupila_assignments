@@ -16,6 +16,7 @@ __pycache__/
 *.txt
 *.json
 !sdxl_turbo_workflow.json
+!sdxlturbo_example.json
 *.pdf
 *.docx
 *.xlsx
