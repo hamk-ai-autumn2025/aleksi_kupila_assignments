@@ -1,7 +1,8 @@
 from openai import OpenAI
+from utils.openai_utils import create_translation
 from queue import Queue
 from pynput import keyboard
-from utils.audio_util import create_translation, Push_to_talk
+from utils.audio_util import Push_to_talk
 import time
 import threading
 
@@ -22,7 +23,7 @@ def on_release(recorder, key):
             filename = recorder.stop_recording()
             if filename:
                 def worker(filename, model, saveOutput):
-                    transcript = create_translation(filename, model, saveOutput)
+                    transcript = create_translation(filename, model, False)
                     transcribe_queue.put(transcript)
 
                 threading.Thread(target=worker, args=[filename,"whisper-1",True]).start()
@@ -36,13 +37,17 @@ def main():
         on_release=lambda key: on_release(recorder, key)
     )
     listener.start() # Activate keyboard listener
+    print("Press shift to record audio:")
 
     try:
         while True:
             # check queue
             while not transcribe_queue.empty():
                 audio_file = transcribe_queue.get()
+
                 print(audio_file)
+
+                print("Press shift to record audio:")
 
             time.sleep(0.01)
     except KeyboardInterrupt:
