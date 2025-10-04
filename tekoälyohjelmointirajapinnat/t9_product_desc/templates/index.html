@@ -1,0 +1,233 @@
+{% extends "layout.html" %}
+{% block title %}AI Product Description Generator{% endblock %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script>
+  document.documentElement.setAttribute('data-bs-theme', 'dark');
+</script>
+<style>
+:root {
+  --highlight-color: #007bff; /* Single highlight color */
+}
+
+body {
+  background-color: #1a1a1a;
+  color: #ffffff;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', sans-serif;
+}
+
+[data-bs-theme="dark"] .card {
+  background-color: #2d2d2d;
+  border: 1px solid #444;
+}
+
+.container {
+  min-height: 80vh;
+}
+
+.form-control, .form-control:focus {
+  background-color: #2d2d2d;
+  border: 1px solid #555;
+  color: #fff;
+}
+
+.form-control:focus {
+  border-color: var(--highlight-color);
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.btn-primary {
+  background-color: var(--highlight-color);
+  border-color: var(--highlight-color);
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+  border-color: #004085;
+}
+
+.dropzone {
+  border: 2px dashed #555;
+  border-radius: 10px;
+  background-color: #2d2d2d;
+  min-height: 200px;
+  padding: 20px;
+  transition: all 0.3s;
+}
+
+.dropzone:hover {
+  border-color: var(--highlight-color);
+}
+
+.card {
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  transition: transform 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+footer {
+  background-color: #1a1a1a;
+  border-top: 1px solid #444;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<header class="text-center py-4 bg-dark">
+  <h1 class="display-5 fw-bold text-primary">AI Product Description Generator</h1>
+  <p class="lead">Upload images and enter details to generate compelling product descriptions powered by AI.</p>
+</header>
+
+<main class="container my-5">
+  <div class="row gy-4">
+    <!-- Left: Text Input -->
+    <div class="col-lg-6">
+      <div class="card shadow-sm p-4 rounded">
+        <h5 class="card-title mb-3">Product Details</h5>
+        <textarea class="form-control" id="productDetails" rows="8" placeholder="Enter product details, features, specifications, or any additional information..."></textarea>
+      </div>
+    </div>
+    <!-- Right: Drag and Drop -->
+    <div class="col-lg-6">
+      <div class="card shadow-sm p-4 rounded">
+        <h5 class="card-title mb-3">Upload Images (1-6)</h5>
+        <form action="/upload" class="dropzone" id="imageDropzone">
+        </form>
+        <div id="imagePreviews" class="row mt-3 g-3"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Generate Button -->
+  <div class="row mt-4">
+    <div class="col text-center">
+      <button class="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow" id="generateBtn">
+        <i class="fas fa-magic me-2"></i>Generate Description
+      </button>
+    </div>
+  </div>
+
+  <!-- Generated Description -->
+  <div class="row mt-5">
+    <div class="col">
+      <div class="card shadow-sm rounded d-none" id="descriptionCard">
+        <div class="card-header">
+          <h5 class="card-title mb-0 text-primary">Generated Product Description</h5>
+        </div>
+        <div class="card-body">
+          <p id="generatedDescription" class="mb-0"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+// Initialize Dropzone
+Dropzone.autoDiscover = false;
+
+const dropzone = new Dropzone("#imageDropzone", {
+
+  url: "/upload",
+  paramName: "image",
+  maxFiles: 6,
+  minFiles: 1,
+  acceptedFiles: "image/*",
+  dictDefaultMessage: "Drag and drop images here or click to upload",
+  dictMaxFilesExceeded: "Maximum 6 images allowed",
+  dictFileTooBig: "File is too big (max 10MB)",
+  maxFilesize: 10, // MB
+  addRemoveLinks: true,
+  dictRemoveFile: "Remove",
+  init: function() {
+    this.on("addedfile", function(file) {
+      // Create preview card
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        createImageCard(e.target.result, file.name, file);
+      };
+      reader.readAsDataURL(file);
+    });
+
+    this.on("removedfile", function(file) {
+      removeImageCard(file.name);
+    });
+
+    this.on("maxfilesexceeded", function(file) {
+      this.removeFile(file);
+    });
+  }
+});
+
+function createImageCard(src, name, file) {
+  const cardDiv = document.createElement("div");
+  cardDiv.className = "col-md-4";
+  cardDiv.id = "card-" + name.replace(/\s/g, '');
+  cardDiv.innerHTML = `
+    <div class="card rounded shadow-sm">
+      <img src="${src}" class="card-img-top rounded-top" alt="${name}" style="height: 150px; object-fit: cover;">
+      <div class="card-body p-2">
+        <small class="card-text text-muted">${name}</small>
+      </div>
+    </div>
+  `;
+  document.getElementById('imagePreviews').appendChild(cardDiv);
+}
+
+function removeImageCard(name) {
+  const card = document.getElementById("card-" + name.replace(/\s/g, ''));
+  if (card) card.remove();
+}
+
+// Generate description via backend
+document.getElementById("generateBtn").addEventListener("click", async function() {
+  const details = document.getElementById("productDetails").value;
+  const descriptionCard = document.getElementById("descriptionCard");
+  const desc = document.getElementById("generatedDescription");
+
+  if (!details && !dropzone.files.length) {
+    alert("Please provide product details and upload at least one image.");
+    return;
+  }
+
+  // Send to backend
+  this.disabled = true;
+  this.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Generating...';
+
+  try {
+    const response = await fetch('/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({ details: details })
+    });
+
+    const data = await response.json();
+    desc.textContent = data.description;
+    descriptionCard.classList.remove("d-none");
+    // Scroll to description
+    descriptionCard.scrollIntoView({ behavior: 'smooth' });
+  } catch (error) {
+    console.error('Error:', error);
+    desc.textContent = "Error generating description. Please try again.";
+    descriptionCard.classList.remove("d-none");
+  } finally {
+    this.disabled = false;
+    this.innerHTML = '<i class="fas fa-magic me-2"></i>Generate Description';
+  }
+});
+</script>
+{% endblock %}
+
+{% block footer %}
+<footer class="text-center py-3">
+  <p class="mb-0">&copy; 2025 AI Product Description Generator. Built with Bootstrap and modern web technologies.</p>
+</footer>
+{% endblock %}
