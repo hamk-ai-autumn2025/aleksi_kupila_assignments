@@ -9,6 +9,7 @@ __pycache__/
 
 *.webp
 *.png
+!example.png
 *.jpg
 *.jpeg
 

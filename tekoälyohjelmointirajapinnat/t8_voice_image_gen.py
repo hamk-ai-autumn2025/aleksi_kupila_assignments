@@ -37,14 +37,24 @@ def on_release(recorder, key):
 
 # Orchestration function for recording, API calls etc.
 def main():
-    recorder = Push_to_talk(device=12, samplerate=48000, channels=1)  # New recorder object
-    comfy_client = Comfy(workflow_path="sdxlturbo_example.json")  # ComfyUI client instance
+    print("Voice-controlled image generator using ComfyUI API")
+    try:
+        recorder = Push_to_talk(device=12, samplerate=48000, channels=1)  # New recorder object
+        print("Voice recorder ready!")
+    except Exception as e:
+        print(f"Error creating the recorder instance. Make sure the recorder class exists: {e}")
+    try:
+        comfy_client = Comfy(workflow_path="sdxlturbo_example.json")  # ComfyUI client instance
+        print("Connected to ComfyUI Client!")
+    except Exception as e:
+        print(f"Error connecting to ComfyUI Client. Make sure the client is running and the class exists {e}")
+        exit
     listener = keyboard.Listener(  
         on_press= lambda key: on_press(recorder, key),
         on_release=lambda key: on_release(recorder, key)
     )
     listener.start() # Activate keyboard listener
-    print("Press shift to record audio for image prompt:")
+    print("Press shift to record audio for image prompt, ctrl+c to quit:")
 
     try:
         while True:
@@ -58,7 +68,7 @@ def main():
                     comfy_client.get_image(prompt, "lowres, low quality")
                 else:
                     print("Generating prompt failed, please try again: ")
-                print("Press shift to record audio for image prompt:")
+                print("Press shift to record audio for image prompt, ctrl+c to quit:")
 
             time.sleep(0.01)
     except KeyboardInterrupt:
