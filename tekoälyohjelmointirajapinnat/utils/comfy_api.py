@@ -1,25 +1,70 @@
+from pathlib import Path
 import json, copy
 import requests
 from urllib.error import URLError, HTTPError
-from file_util import find_new_file_name
+from .file_util import find_new_file_name
 import time
 from random import randint
 
 class Comfy():
-    def __init__(self, workflow_path, api_url, pos_node_id, neg_node_id, seed_node_id):
-        self.workflow_path = workflow_path
+    """
+    A client for integrating with ComfyUI API to generate images.
+    
+    This class provides a simple interface to queue image generation prompts,
+    poll for completion, and fetch the resulting images from a ComfyUI instance.
+    
+    Attributes:
+        workflow_path (str): Path to the workflow JSON file
+        workflow (dict): Loaded workflow configuration
+        api_url (str): Base URL for the ComfyUI API
+        pos_node_id (str): Node ID for positive prompt in workflow
+        neg_node_id (str): Node ID for negative prompt in workflow
+        seed_node_id (str): Node ID for seed parameter in workflow
+    """
+    
+    def __init__(self, workflow_path: str = "/workflows/sdxlturbo_example.json", api_url: str = "http://127.0.0.1:8188", pos_node_id: str = "6", neg_node_id: str = "7", seed_node_id: str = "13", base_dir: str = None):
+        """
+        Initialize the Comfy API client.
+        
+        Args:
+            workflow_path (str): Path to the API-compatible workflow JSON file
+            api_url (str): Base URL of the ComfyUI API endpoint
+            pos_node_id (str): Node ID for positive prompt in the workflow
+            neg_node_id (str): Node ID for negative prompt in the workflow
+            seed_node_id (str): Node ID for seed parameter in the workflow
+        """
+
+        # Directory where comfy_api.py is located
+        self.module_dir = Path(__file__).resolve().parent
+        # Directory where /images and /workflows are located
+        self.base_dir = Path(base_dir).resolve() if base_dir else self.module_dir
+
+        self.workflows_dir = self.base_dir / "workflows"
+        self.images_dir = self.base_dir / "images"
+
         self.workflow = None
         self.api_url = api_url
         self.pos_node_id = pos_node_id
         self.neg_node_id = neg_node_id
         self.seed_node_id = seed_node_id
 
+        # Resolve workflow path
+        if workflow_path:
+            wf = Path(workflow_path).expanduser()
+            if not wf.is_absolute():
+                wf = self.workflows_dir / workflow_path
+            self.workflow_path = wf
+        else:
+            self.workflow_path = None
         self.load_workflow()
 
-    '''
-    Saves .json workflow file to a instance attribute self.workflow
-    '''
     def load_workflow(self):
+        """
+        Load the workflow JSON file and store it in the workflow attribute.
+        
+        Raises:
+            Exception: If the workflow file cannot be loaded or parsed
+        """
         try:
             with open(f'{self.workflow_path}', 'r') as file:
                 workflow=json.load(file)
@@ -30,6 +75,15 @@ class Comfy():
             print(f"Error loading workflow file: {e}")
 
     def queue_prompt(self, workflow):
+        """
+        Submit a workflow prompt to the ComfyUI API queue.
+        
+        Args:
+            workflow (dict): The workflow configuration with prompts inserted
+            
+        Returns:
+            dict: Response containing prompt_id if successful, None otherwise
+        """
         try:
             p = {"prompt": workflow}
             data = json.dumps(p).encode('utf-8')
@@ -47,6 +101,16 @@ class Comfy():
             return None
 
     def fetch_image(self, response, prompt_id):
+        """
+        Download and save the generated image from the API response.
+        
+        Args:
+            response (dict): The API response containing image information
+            prompt_id (str): The prompt ID for this generation request
+            
+        Returns:
+            str: Path to the saved image file if successful, None otherwise
+        """
 
         for node_id, node_output in response.items():
             if "images" in node_output:
@@ -56,7 +120,7 @@ class Comfy():
 
                     try:
                         image_resp = requests.get(f"{self.api_url}/view?filename={filename}&subfolder={subfolder}&type=output", timeout=5)
-                        new_filename = find_new_file_name(f'images/{filename}')
+                        new_filename = find_new_file_name(str(self.images_dir / filename))
 
                         with open(f"{new_filename}", "wb") as f:
                             f.write(image_resp.content)
@@ -64,9 +128,23 @@ class Comfy():
                         return new_filename
                     except Exception as e:
                         print(f"Failed to fetch image: {e}")
-                        return None
+        return None
 
     def poll_for_result(self, prompt_id, timeout=20, interval=0.5):
+        """
+        Poll the API until the image generation is complete.
+        
+        Args:
+            prompt_id (str): The prompt ID to check for completion
+            timeout (int, optional): Maximum time to wait in seconds. Defaults to 20.
+            interval (float, optional): Time between polling requests. Defaults to 0.5.
+            
+        Returns:
+            dict: The outputs section of the completed prompt
+            
+        Raises:
+            TimeoutError: If the prompt is not ready within the timeout period
+        """
         start = time.time()
 
         while True:
@@ -87,6 +165,23 @@ class Comfy():
             time.sleep(interval)
 
     def get_image(self, pos_prompt, neg_prompt):
+        """
+        Generate an image using the provided prompts.
+        
+        This is the main method that orchestrates the entire image generation process:
+        inserts prompts into workflow, queues the request, polls for completion,
+        and fetches the resulting image.
+        
+        Args:
+            pos_prompt (str): Positive prompt describing what to generate
+            neg_prompt (str): Negative prompt describing what to avoid
+            
+        Returns:
+            str: Path to the generated image file if successful, None otherwise
+        """
+
+        if not self.workflow:
+            self.load_workflow()
 
         workflow = copy.deepcopy(self.workflow)
 
@@ -114,13 +209,13 @@ class Comfy():
             return None
 
 
-
-
-# For testing purposes
-
+'''
 def main():
-    comfy = Comfy("sdxlturbo_example.json","http://127.0.0.1:8188",6,7,13)
+    """Test function demonstrating basic usage of the Comfy class."""
+    comfy = Comfy("workflows/sdxlturbo_example.json","http://127.0.0.1:8188",6,7,13)
+    
     comfy.get_image("ultrarealistic, best quality photo of a woman with brown hair, indoor setting, natural lighting", "lowres, disfigured, error, mistake, missing limbs, low quality")
 
 if __name__ == "__main__":
     main()
+'''

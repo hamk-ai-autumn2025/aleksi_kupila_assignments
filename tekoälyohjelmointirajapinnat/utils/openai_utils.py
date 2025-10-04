@@ -1,14 +1,15 @@
+import os
 from openai import OpenAI
 from utils.file_util import find_new_file_name
 
 client = OpenAI()
 
-def create_translation(recording, model="whisper-1", saveOutput=False) -> str:
+def create_translation(recording, model="gpt-4o-mini-transcribe", saveOutput=False, removeFile = True) -> str:
     '''
     Returns string transcription of an audio file, translated into English. Uses OpenAI API.
 
     Args:
-        Audio file path (str), LLM to use (str), Save output to a text file (bool)
+        Audio file path (str), LLM to use (str), Save output to a text file (bool), Remove audio file afterwards (bool)
 
     Returns:
         String transcription (English) of the speech in the audio file
@@ -27,17 +28,28 @@ def create_translation(recording, model="whisper-1", saveOutput=False) -> str:
                 with open(filename, "w", encoding="utf-8") as f:
                     f.write(transcription.text)
                     print(f"Final output saved to {filename}")
+            
         except Exception as e:
             print(f'Error creating transcription: {e}')
             return None
-        return transcription.text
+
+ # Remove file after successful processing
+    if removeFile:
+        try:
+            os.remove(recording)
+            print(f"Removed audio file: {recording}")
+        except OSError as e:
+            print(f"Error removing file {recording}: {e}")
+            
+    return transcription.text
+            
     
-def create_transcription(recording, model="gpt-4o-transcribe", saveOutput=False) -> str:
+def create_transcription(recording, model="gpt-4o-transcribe", saveOutput=False, removeFile=True) -> str:
     '''
     Returns string transcription of an audio file in spoken language. Uses OpenAI API.
 
     Args:
-        Audio file path (str), LLM to use (str), Save output to a text file (bool)
+        Audio file path (str), LLM to use (str), Save output to a text file (bool), Remove audio file afterwards (bool)
 
     Returns:
         String transcription of the speech in the audio file
@@ -59,4 +71,11 @@ def create_transcription(recording, model="gpt-4o-transcribe", saveOutput=False)
         except Exception as e:
             print(f'Error creating transcription: {e}')
             return None
-        return transcription.text
+        
+    if removeFile:
+        try:
+            os.remove(recording)
+            print(f"Removed audio file: {recording}")
+        except OSError as e:
+            print(f"Error removing file {recording}: {e}")
+    return transcription.text
