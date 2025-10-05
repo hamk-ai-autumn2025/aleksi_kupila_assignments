@@ -97,7 +97,7 @@ footer {
     <div class="col-lg-6">
       <div class="card shadow-sm p-4 rounded">
         <h5 class="card-title mb-3">Upload Images (1-6)</h5>
-        <form action="/upload" class="dropzone" id="imageDropzone">
+        <form method="upload" class="dropzone" id="imageDropzone">
         </form>
         <div id="imagePreviews" class="row mt-3 g-3"></div>
       </div>
@@ -148,7 +148,7 @@ const dropzone = new Dropzone("#imageDropzone", {
   success: function(file, response) {
     file.serverId = response.id; // store safe name
     },
-    
+
   init: function() {
     this.on("addedfile", function(file) {
       // Create preview card
@@ -204,18 +204,15 @@ document.getElementById("generateBtn").addEventListener("click", async function(
     alert("Please provide product details and upload at least one image.");
     return;
   }
-
   // Send to backend
   this.disabled = true;
   this.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Generating...';
 
   try {
-    const response = await fetch('/generate', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({ details: details })
+    const response = await fetch('/generate', { 
+      method: 'POST', 
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', }, 
+      body: formData 
     });
 
     const data = await response.json();

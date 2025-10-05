@@ -1,5 +1,4 @@
 from flask import Flask, render_template, request, jsonify
-import pathlib
 import os
 import uuid
 from werkzeug.utils import secure_filename
@@ -71,7 +70,7 @@ def remove_file():
 def generate():
     # Placeholder for LLM generation
     product_details = request.form.get('details', '')
-    # In real implementation, process images and details with LLM
+    
     description = f"Generated description for: {product_details[:50]}..." if product_details else "No details provided."
     return jsonify({"description": description})
 
