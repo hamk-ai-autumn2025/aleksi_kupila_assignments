@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, jsonify
-import os, base64, uuid
+import os, base64, uuid, json
 from werkzeug.utils import secure_filename
 from openai import OpenAI
 
@@ -70,11 +70,24 @@ def remove_file():
 
 @app.route("/generate", methods=["POST"])
 def generate():
-    # Placeholder for LLM generation
-    product_details = request.form.get('details', '')
     
-    description = f"Generated description for: {product_details[:50]}..." if product_details else "No details provided."
-    return jsonify({"description": description})
+    product_details = request.form.get('details', '')
+    files = []
+    for file in os.listdir(UPLOAD_FOLDER):
+        files.append(f"{UPLOAD_FOLDER}/{file}")
+
+    if len(files) != 0:
+        materials = generate_marketing_material(files, product_details, "gpt-4.1-mini")
+        if materials:
+            print("Succesfully generated materials!")
+            try:
+                parsed_materials = json.loads(materials)
+                return jsonify(parsed_materials)
+            except json.JSONDecodeError:
+                return jsonify({"error": "Invalid response format", "raw": materials}), 500
+
+    return jsonify({"No details provided"})
+
 
 if __name__ == '__main__':
     app.run(debug=True)
@@ -97,6 +110,7 @@ def generate_marketing_material(image_paths, prompt, model):
     supports_sampling = model not in ["gpt-5", "gpt-5-mini", "gpt-5-nano"]
     print("---Generating description of image...---")
     print(f"---Using description generation model: {model}---\n")
+    encoded_images = []
 
     sysprompt = """You are a marketing assistant. 
     Given an image/images of a product and optional user input about its features or target audience, generate:
@@ -114,35 +128,34 @@ def generate_marketing_material(image_paths, prompt, model):
     Do not include any text outside of the JSON object."""
 
     for img in image_paths:
-        base64_image = encode_image(img)
+        encoded_images.append(encode_image(img))
 
-    if base64_image:
-        try:
-            response = client.responses.create(
-                instructions = sysprompt,
-                input=[
-                    {
-                        "role": "user",
-                        "content": [
-                            {
-                                "type": "input_text",
-                                "text": f"{prompt}"
-                            },
-                            {
-                                "type": "input_image",
-                                "image_url": f"data:image/jpeg;base64,{base64_image}"
-                            }
-                        ]
-                    }
-                ],
-                model=model,
-                **({"temperature": 0.6, "top_p": 0.95} if supports_sampling else {}),  # Only enter these if model is not GPT-5 (supports sampling)
-                max_output_tokens=2000,
-            )
+    try:
+        response = client.responses.create(
+            instructions = sysprompt,
+            input=[
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "input_text",
+                            "text": f"{prompt}"
+                        },
+                        {
+                            "type": "input_image",
+                            "image_url": f"data:image/jpeg;base64,{encoded_images}"
+                        }
+                    ]
+                }
+            ],
+            model=model,
+            **({"temperature": 0.2} if supports_sampling else {}),  # Only enter these if model is not GPT-5 (supports sampling)
+            max_output_tokens=2000,
+        )
             # Prints output for both GPT-5 and others
-            print(f"Response:\n{response.output_text}\n")
-            return response.output_text
+        print(f"Response:\n{response.output_text}\n")
+        return response.output_text
 
-        except Exception as e:
-            print(f"Error generating description: {e}\n")
+    except Exception as e:
+        print(f"Error generating description: {e}\n")
     return False
