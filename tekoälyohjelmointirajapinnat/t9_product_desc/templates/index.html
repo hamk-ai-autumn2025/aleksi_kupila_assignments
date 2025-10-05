@@ -133,7 +133,6 @@ footer {
 Dropzone.autoDiscover = false;
 
 const dropzone = new Dropzone("#imageDropzone", {
-
   url: "/upload",
   paramName: "image",
   maxFiles: 6,
@@ -145,6 +144,11 @@ const dropzone = new Dropzone("#imageDropzone", {
   maxFilesize: 10, // MB
   addRemoveLinks: true,
   dictRemoveFile: "Remove",
+
+  success: function(file, response) {
+    file.serverId = response.id; // store safe name
+    },
+    
   init: function() {
     this.on("addedfile", function(file) {
       // Create preview card
@@ -154,8 +158,13 @@ const dropzone = new Dropzone("#imageDropzone", {
       };
       reader.readAsDataURL(file);
     });
-
+  
     this.on("removedfile", function(file) {
+      fetch("/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: file.serverId })
+      });
       removeImageCard(file.name);
     });
 
