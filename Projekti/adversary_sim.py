@@ -4,7 +4,7 @@ from openai_apis import ask_model, ask_analysis
 from checks import extract_json, validateStructure, valid_command
 from utils import write_json
 
-
+EXECUTOR_CONTAINER = "command_executor"
 app = Flask(__name__)
 
 # --- Runs command inside a docker container
@@ -12,12 +12,16 @@ def run_command(command: list[str]):
      # Convert "nmap -sV dvwa" -> ["nmap", "-sV", "dvwa"]
     args = shlex.split(command)
 
-    print(f'Running command: {command} in docker container instrumentisto/nmap')
-    result = subprocess.run(
-        ["docker", "run", "--rm", "--network=projekti_pocnet", "instrumentisto/nmap"] + args,
-        capture_output=True,
-        text=True
-    )
+    print(f'Running command: {command} in docker container projekti-executor')
+
+    try:
+        result = subprocess.run(
+            ["docker", "exec", EXECUTOR_CONTAINER, "sudo"] + args,
+            capture_output=True,
+            text=True
+        )
+    except Exception as e:
+        print(f"Error running command: {e}")
     return result
     
 # --- When user clicks "Get command suggestion" button

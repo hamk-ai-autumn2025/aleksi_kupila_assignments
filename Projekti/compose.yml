@@ -3,7 +3,7 @@ services:
     image: vulnerables/web-dvwa
     ports:
       - "8080:80"   # expose DVWA on localhost:8080
-    container_name: poc_target
+    container_name: target_dvwa
     environment:
       MYSQL_USER: dvwa
       MYSQL_PASSWORD: dvwa
@@ -11,7 +11,16 @@ services:
       MYSQL_ROOT_PASSWORD: root
     restart: unless-stopped
     networks:
-      - pocnet
+      - adversary_sim_network
+
+  executor:
+    build: ./executor
+    container_name: command_executor
+    depends_on:
+      - dvwa
+    networks:
+      - adversary_sim_network
+
 networks:
-  pocnet:
+  adversary_sim_network:
     driver: bridge

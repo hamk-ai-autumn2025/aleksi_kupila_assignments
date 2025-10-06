@@ -33,8 +33,9 @@ def ask_model(prompt, max_tokens=400):
             temperature=0.0,
             max_output_tokens=max_tokens
         )
-        # print(f"Output: {resp.output_text}")
+
         json_string = extract_json_from_response(resp.output_text)
+        print(f"Output: {json_string}")
 
         if not json_string:
             print(f"\nValidation Error: No valid JSON object found in the model's response.\n")
@@ -80,7 +81,7 @@ def main():
 
         print("Generating response... \n")            
         resp = ask_model(prompt, 400)
-        
+
         if resp:
             print("\n" + "="*20)
             data = resp.model_dump()

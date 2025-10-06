@@ -1,0 +1,19 @@
+FROM alpine:3.19
+
+# Install needed packages
+RUN apk update && apk add --no-cache nmap perl git sudo shadow bash
+
+# Create user and group safely
+RUN addgroup -S wheel || true
+RUN adduser -D -G wheel -s /bin/sh scanner
+
+# Add sudoers file
+RUN mkdir -p /etc/sudoers.d \
+ && printf 'scanner ALL=(ALL) NOPASSWD: /usr/bin/nmap, /usr/bin/nikto\n' > /etc/sudoers.d/scanner \
+ && chmod 0440 /etc/sudoers.d/scanner \
+ && chown root:root /etc/sudoers.d/scanner
+
+# Switch to scanner user
+USER scanner
+WORKDIR /home/scanner
+CMD ["tail", "-f", "/dev/null"]
