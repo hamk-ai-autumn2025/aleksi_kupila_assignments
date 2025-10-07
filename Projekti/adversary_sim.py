@@ -1,9 +1,9 @@
-import shlex, subprocess, uuid, time
+import os, json
 from flask import Flask, request, render_template,  session
 from flask_session import Session
 from utils.openai_apis import ask_model, ask_analysis, conclusive_analysis
 from utils.checks import extract_json, validateStructure, valid_command
-from utils.file_utils import write_json
+from utils.file_utils import write_json, save_result, load_results, run_command
 
 EXECUTOR_CONTAINER = "command_executor"
 TEMP_FILE = "temp"
@@ -16,37 +16,12 @@ app.config["SESSION_TYPE"] = "filesystem"     # Store session data in files
 # Initialize Flask-Session
 session = Session(app)
 session.results = []
-# --- Runs command inside a docker container
-def run_command(command: list[str]):
-     # Convert "nmap -sV dvwa" -> ["nmap", "-sV", "dvwa"]
-    args = shlex.split(command)
+session.commands = []
 
-    print(f'Running command: {command} in docker container projekti-executor')
-
-    try:
-        result = subprocess.run(
-            ["docker", "exec", EXECUTOR_CONTAINER] + args,
-            capture_output=True,
-            text=True
-        )
-        print(result)
-        return result
-    
-    except Exception as e:
-        print(f"Error running command: {e}")
-        return None
-
-def add_result(command, command_output, prompt_analysis):
-        
-    session.results.append({
-        "id": str(uuid.uuid4()),
-        "timestamp": time.time(),
-        "command": command,
-        "stdout": command_output.stdout,
-        "stderr": command_output.stderr,
-        "ai_analysis": prompt_analysis
-    })
-    print("Results added to session memory!\n")    
+# Clean temp file:
+if os.path.exists(TEMP_FILE):
+    with open(TEMP_FILE, "w") as f:
+        json.dump([], f)
 
 
 # --- When user clicks "Get command suggestion" button
@@ -80,12 +55,12 @@ def run():
         if not ok:
             return render_template("index.html", error=f"Command rejected: {reason}")
         # At this point, command is recognized as VALID by basic safety checks
-        command_output = (run_command(command))
+        command_output = (run_command(EXECUTOR_CONTAINER, command))
         prompt_analysis = ask_analysis(command_output.stdout)
         #print(command_output.stdout)
         #print(prompt_analysis)
         if command_output and prompt_analysis:
-            add_result(command, command_output, prompt_analysis)
+            save_result(TEMP_FILE, command, command_output.stdout, command_output.stderr)
             return render_template('index.html', suggestion = session.commands, command=command, command_output = command_output.stdout, prompt_analysis = prompt_analysis, error="Success!")
         else: 
             return render_template('index.html', error="Generating analysis failed")
@@ -95,10 +70,10 @@ def run():
 
 
 # ... When user clicks "Get conclusive analysis" button
-@app.route("/analyze", methods=["POST"])
+@app.route("/analysis", methods=["POST"])
 def get_conclusive_analysis():
     try:
-        all_outputs = session["commands"]
+        all_outputs = load_results(TEMP_FILE)
         ai_analysis = conclusive_analysis(all_outputs)
         return render_template('index.html', conclusive_analysis=ai_analysis, error=None)
     

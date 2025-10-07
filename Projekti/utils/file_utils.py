@@ -1,6 +1,27 @@
 import os, time, uuid, json
-import ast
+import ast, subprocess, shlex
 
+
+# --- Runs command inside a docker container
+def run_command(EXECUTOR_CONTAINER, command: list[str]):
+     # Convert "nmap -sV dvwa" -> ["nmap", "-sV", "dvwa"]
+    args = shlex.split(command)
+
+    print(f'Running command: {command} in docker container projekti-executor')
+
+    try:
+        result = subprocess.run(
+            ["docker", "exec", EXECUTOR_CONTAINER] + args,
+            capture_output=True,
+            text=True
+        )
+        print(result)
+        return result
+    
+    except Exception as e:
+        print(f"Error running command: {e}")
+        return None
+    
 def find_new_file_name(base_name: str) -> str:
     """
     Finds a new filename that doesn't already exist by adding a number to the end of the base name.
@@ -49,3 +70,36 @@ def write_json(session_output):
         json.dump(data, f, indent=4, ensure_ascii=False, sort_keys=False, default=str)
         f.write("\n")
     return filename
+
+def save_result(TEMP_FILE, command, stdout, stderr):
+    '''
+    Save session records to a temporary file
+    '''
+    entry = {
+        "id": str(uuid.uuid4()),
+        "timestamp": time.time(),
+        "command": command,
+        "stdout": stdout,
+        "stderr": stderr,
+    }
+    try:
+        # Create file if missing
+        if not os.path.exists(TEMP_FILE):
+            with open(TEMP_FILE, "w") as f:
+                json.dump([], f)
+
+        # Append entry
+        with open(TEMP_FILE, "r+") as f:
+            data = json.load(f)
+            data.append(entry)
+            f.seek(0)
+            json.dump(data, f, indent=2)
+            print("Results added to session memory!\n")
+    except Exception as e:
+        print(f"Error: saving output to a temporary file failed! {e}")
+
+def load_results(TEMP_FILE):
+    if not os.path.exists(TEMP_FILE):
+        return []
+    with open(TEMP_FILE) as f:
+        return json.load(f)

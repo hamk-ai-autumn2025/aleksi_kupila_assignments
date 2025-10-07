@@ -20,12 +20,9 @@ You are a cybersecurity analyst. Analyze the following tool output and:
 Return a concise bullet list.
 """
 CONCLUDE_PROMPT = """
-You are a cybersecurity analyst. You will be given outputs of one or more commands ran on a web server.
-Analyze the outputs, and:
-1. Summarize findings
-2. List severity: High/Medium/Low for each issue mentioned.
-3) Suggest concrete mitigations.
-Return a concise bullet list.
+Analyze the outputs of these commands and provide a conclusive summary of the target's security posture. 
+Focus on key vulnerabilities, patterns, and recommendations. 
+Do not repeat the outputs; summarize them concisely.
 """
 def ask_model(prompt, max_tokens=400):
     '''
@@ -66,6 +63,7 @@ def ask_analysis(prompt, max_tokens=400):
        return None
     
 def conclusive_analysis(prompt, max_tokens=1000):
+    print(prompt)
     '''
     Ask model conclusive analysis of command outputs
     '''

@@ -38,21 +38,33 @@
 {% if command_output %}
 <form method="post" action="/save">
   <div id="outputArea" class="mb-3">
-    <h3>Raw Output</h3>
-    <div class="mb-3">
-      <input type="hidden" name="command" value="{{ command|escape }}">
-      <textarea class="form-control" id="raw_out" name="command_output" rows="12" readonly>{{ command_output }}</textarea>
-    </div>
-
-    <h3>AI Analysis</h3>
-    <div class="mb-3">
-      <textarea class="form-control" id="analysis" name="prompt_analysis" rows="12" readonly>{{ prompt_analysis }}</textarea>
+    <div class="row">
+      <div class="col-md-6">
+        <h3>Raw Output</h3>
+        <div class="mb-3">
+          <input type="hidden" name="command" value="{{ command|escape }}">
+          <textarea class="form-control" id="raw_out" name="command_output" rows="12" readonly>{{ command_output }}</textarea>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <h3>AI Analysis</h3>
+        <div class="mb-3">
+          <textarea class="form-control" id="analysis" name="prompt_analysis" rows="12" readonly>{{ prompt_analysis }}</textarea>
+        </div>
+      </div>
     </div>
   </div>
-
-  <button type="submit" class="btn btn-success">Save session output (JSON)?</button>
+    <button type="submit" class="btn btn-success">Save session output (JSON)?</button>
 </form>
-{% endif %}
+<form method = "post" action="/analysis">
+  <button type="submit" class="btn btn-success">Generate conclusive analysis?</btn>
+</form>
 
+{% endif %}
+{% if conclusive_analysis %}
+<div>
+  <textarea id="conclusive_analysis" name="conclusive_analysis" rows="12" readonly>{{ conclusive_analysis }}</textarea>
+</div>
+{% endif %}
 
 {% endblock %}
