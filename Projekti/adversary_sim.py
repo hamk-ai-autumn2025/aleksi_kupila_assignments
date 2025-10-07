@@ -1,8 +1,8 @@
 import shlex, subprocess
 from flask import Flask, request, render_template
-from openai_apis import ask_model, ask_analysis
-from checks import extract_json, validateStructure, valid_command
-from utils import write_json
+from utils.openai_apis import ask_model, ask_analysis
+from utils.checks import extract_json, validateStructure, valid_command
+from utils.file_utils import write_json
 
 EXECUTOR_CONTAINER = "command_executor"
 app = Flask(__name__)
@@ -16,13 +16,16 @@ def run_command(command: list[str]):
 
     try:
         result = subprocess.run(
-            ["docker", "exec", EXECUTOR_CONTAINER, "sudo"] + args,
+            ["docker", "exec", EXECUTOR_CONTAINER] + args,
             capture_output=True,
             text=True
         )
+        print(result)
+        return result
+    
     except Exception as e:
         print(f"Error running command: {e}")
-    return result
+        return None
     
 # --- When user clicks "Get command suggestion" button
 @app.route('/suggest', methods=['POST'])
@@ -57,8 +60,11 @@ def run():
         ai_analysis = ask_analysis(command_output.stdout)
         print(command_output.stdout)
         print(ai_analysis)
+        if command_output and ai_analysis:
+            return render_template('index.html', command=command, command_output = command_output.stdout, ai_analysis = ai_analysis, error="Success!")
+        else: 
+            return render_template('index.html', suggestion = False, error="Generating analysis failed")
 
-        return render_template('index.html', command=command, command_output = command_output.stdout, ai_analysis = ai_analysis, error="Success!")
     else:
         return render_template('index.html', suggestion = False, error="No command selected to run")
     

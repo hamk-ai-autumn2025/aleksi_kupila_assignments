@@ -24,26 +24,36 @@ def ask_model(prompt, max_tokens=400):
     '''
     Ask model for a command suggestion
     '''
-    resp = client.responses.create(
-        model="gpt-4.1-mini",
-        instructions=SUGGEST_PROMPT,
-        input=prompt,
-        temperature=0.0,
-        max_output_tokens=max_tokens
-    )
-    print(resp.output_text)
-    return resp.output_text
-
-def ask_analysis(prompt, max_tokens=400):
-    '''
-    Ask model for command output analysis
-    '''
-    resp = client.responses.create(
+    try:
+      resp = client.responses.create(
           model="gpt-4.1-mini",
-          instructions=ANALYZE_PROMPT,
+          instructions=SUGGEST_PROMPT,
           input=prompt,
           temperature=0.0,
           max_output_tokens=max_tokens
       )
-    print(resp.output_text)
-    return resp.output_text
+      print(resp.output_text)
+      return resp.output_text
+    
+    except Exception as e:
+       print(f"Error generating suggestion: {e}")
+       return None
+       
+def ask_analysis(prompt, max_tokens=400):
+    '''
+    Ask model for command output analysis
+    '''
+    try:
+      resp = client.responses.create(
+            model="gpt-4.1-mini",
+            instructions=ANALYZE_PROMPT,
+            input=prompt,
+            temperature=0.0,
+            max_output_tokens=max_tokens
+        )
+      print(resp.output_text)
+      return resp.output_text
+    
+    except Exception as e:
+       print(f"Error generating analysis: {e}")
+       return None

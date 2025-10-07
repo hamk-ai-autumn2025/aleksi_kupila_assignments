@@ -1,17 +1,22 @@
 FROM alpine:3.19
 
 # Install needed packages
-RUN apk update && apk add --no-cache nmap perl git sudo shadow bash
+RUN apk update && apk add --no-cache nmap perl sudo shadow bash nikto
 
-# Create user and group safely
+RUN chmod +x /usr/bin/nikto.pl \
+ && ln -s /usr/bin/nikto.pl /usr/local/bin/nikto \
+ && ln -s /usr/bin/nikto.pl /usr/bin/nikto
+# Ensure the main sudoers file includes the sudoers.d directory
+# This is a critical step that is often missed.
+RUN echo "#include /etc/sudoers.d" >> /etc/sudoers
+
+# Create user and group
 RUN addgroup -S wheel || true
-RUN adduser -D -G wheel -s /bin/sh scanner
+RUN adduser -D -G wheel -s /bin/bash scanner
 
-# Add sudoers file
-RUN mkdir -p /etc/sudoers.d \
- && printf 'scanner ALL=(ALL) NOPASSWD: /usr/bin/nmap, /usr/bin/nikto\n' > /etc/sudoers.d/scanner \
- && chmod 0440 /etc/sudoers.d/scanner \
- && chown root:root /etc/sudoers.d/scanner
+# Add the specific, passwordless sudo rule for the scanner user
+RUN echo 'scanner ALL=(ALL) NOPASSWD: /usr/bin/nmap, /usr/local/bin/nikto' > /etc/sudoers.d/scanner \
+ && chmod 0440 /etc/sudoers.d/scanner
 
 # Switch to scanner user
 USER scanner
