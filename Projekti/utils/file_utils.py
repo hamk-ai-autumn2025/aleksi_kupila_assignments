@@ -71,7 +71,7 @@ def write_json(session_output):
         f.write("\n")
     return filename
 
-def save_result(TEMP_FILE, command, stdout, stderr):
+def save_result(TEMP_FILE, command, stdout, stderr, prompt_analysis):
     '''
     Save session records to a temporary file
     '''
@@ -81,6 +81,7 @@ def save_result(TEMP_FILE, command, stdout, stderr):
         "command": command,
         "stdout": stdout,
         "stderr": stderr,
+        "prompt_analysis": prompt_analysis
     }
     try:
         # Create file if missing
