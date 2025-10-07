@@ -42,8 +42,8 @@ def valid_command(command):
     '''
     Checks if a command is "safe" to run in a local Docker container
     '''
-
-    ALLOWED_TARGETS = ["dvwa", "poc_target", "localhost", "127.0.0.1"]
+    # The 192. addresses are my PC and router
+    ALLOWED_TARGETS = ["dvwa", "192.168.88.1", "192.168.88.254", "localhost", "127.0.0.1"]
     FORBIDDEN_CHARS = [";", "&", "|", "`", "$(", ">", "<"]
     ALLOWED_FLAGS = {
         "nmap": {"-sV", "-sC", "-p", "-A", "-T4", "-F"},
