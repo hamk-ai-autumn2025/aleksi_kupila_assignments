@@ -1,108 +1,124 @@
 {% extends "layout.html" %}
-{% block title %}Cybersecurity adversary simulator{% endblock %}
+{% block title %}Automated Vulnerability Scanner{% endblock %}
 
 {% block content %}
-    <h2>AI Adversary Simulator</h2>
-    <div class="mb-3" id="requestArea">
-        <form method="post" action="/suggest">
-            <div class="mb-3">
-                <label class="form-label">Instruction (natural language):</label><br/>
-                <textarea class="form-control" id="user_request" name="instruction"></textarea><br/>
+<div class="container mx-auto px-4 py-8">
+    <h2 class="text-2xl font-semibold mb-6 text-gray-100">Vulnerability Scanner Interface</h2>
+    <div class="bg-gray-800 p-6 rounded-lg shadow-md mb-6">
+        <form method="post" action="/suggest" class="space-y-4">
+            <div>
+                <label for="user_request" class="block text-sm font-medium text-gray-300 mb-2">
+                    Scan Instruction (describe the scan in natural language):
+                </label>
+                <textarea 
+                    class="w-full px-3 py-2 bg-gray-700 text-gray-100 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-vertical font-mono"
+                    id="user_request" 
+                    name="instruction" 
+                    rows="4" 
+                    placeholder="e.g., Scan for open ports on 192.168.1.1 using nmap, or check for vulnerabilities with nikto"></textarea>
             </div>
-        <button type="submit" class="btn btn-primary">Get Command Suggestion</button>
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
+                Get Command Suggestions
+            </button>
         </form>
     </div>
 
 {% if error %}
-  <div class="alert alert-danger">{{ error }}</div>
+  <div class="bg-red-600 border border-red-800 text-white px-4 py-3 rounded mb-6">
+    <span class="font-medium">Error:</span> {{ error }}
+  </div>
+{% endif %}
+
+{% if success %}
+  <div class="bg-green-600 border border-green-800 text-white px-4 py-3 rounded mb-6">
+    <span class="font-medium">Success:</span> {{ success }}
+  </div>
 {% endif %}
 
 {% if suggestion %}
-  <div id="suggestionArea" class="mb-3">
-    <h3>AI Suggested Commands</h3>
-    <form method="post" action="/run">
+  <div class="bg-gray-800 p-6 rounded-lg shadow-md mb-6">
+    <h3 class="text-xl font-semibold mb-4 text-gray-100">Suggested Scan Commands</h3>
+    <form method="post" action="/run" class="space-y-3">
       {% for cmd in suggestion %}
-        <div class="form-check">
-          <input class="form-check-input" type="radio" name="approved_cmd" id="cmd{{ loop.index }}" value="{{ cmd.command }}" {% if loop.first %}checked{% endif %}>
-          <label class="form-check-label" for="cmd{{ loop.index }}">
-            <strong>Tool:</strong> {{ cmd.tool }} &nbsp; <strong>Command:</strong> <code>{{ cmd.command }}</code>
+        <div class="flex items-center">
+          <input class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-500 focus:ring-2" type="radio" name="approved_cmd" id="cmd{{ loop.index }}" value="{{ cmd.command }}" {% if loop.first %}checked{% endif %}>
+          <label class="ml-3 block text-sm font-medium text-gray-300 cursor-pointer" for="cmd{{ loop.index }}">
+            <span class="font-semibold text-gray-200">Tool:</span> {{ cmd.tool }} | <span class="font-semibold text-gray-200">Command:</span> <code class="bg-gray-700 px-2 py-1 rounded text-green-400 font-mono">{{ cmd.command }}</code>
           </label>
         </div>
       {% endfor %}
-      <br/>
-      <button type="submit" class="btn btn-success">Run in Docker (executor)</button>
+      <button type="submit" class="mt-4 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
+        Execute Selected Command
+      </button>
     </form>
   </div>
 {% endif %}
 
 {% if results %}
-  <div id="outputArea" class="mb-3">
-    <div class="d-flex justify-content-between align-items-center mb-2">
-      <h3 class="mb-0">Execution Results</h3>
-      <span class="text-muted small">{{ results|length }} item(s)</span>
+  <div class="bg-gray-800 p-6 rounded-lg shadow-md mb-6">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-xl font-semibold text-gray-100">Scan Results</h3>
+      <span class="text-gray-400 text-sm">{{ results|length }} item(s)</span>
     </div>
 
-    <div class="accordion accordion-flush" id="accResults">
+    <div class="space-y-4">
       {% for r in results %}
-        {% set item_id = 'res' ~ loop.index %}
-        <div class="accordion-item">
-          <h2 class="accordion-header" id="h{{ item_id }}">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#c{{ item_id }}" aria-expanded="false" aria-controls="c{{ item_id }}">
-              <span class="me-2 badge bg-secondary">#{{ loop.index }}</span>
-              <code class="text-dark">{{ r.command }}</code>
-            </button>
-          </h2>
-          <div id="c{{ item_id }}" class="accordion-collapse collapse" aria-labelledby="h{{ item_id }}" data-bs-parent="#accResults">
-            <div class="accordion-body">
-              <ul class="nav nav-tabs mb-3" role="tablist">
-                <li class="nav-item" role="presentation">
-                  <button class="nav-link active" id="out-tab-{{ item_id }}" data-bs-toggle="tab" data-bs-target="#out-{{ item_id }}" type="button" role="tab" aria-controls="out-{{ item_id }}" aria-selected="true">Output</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                  <button class="nav-link" id="ana-tab-{{ item_id }}" data-bs-toggle="tab" data-bs-target="#ana-{{ item_id }}" type="button" role="tab" aria-controls="ana-{{ item_id }}" aria-selected="false">AI Analysis</button>
-                </li>
-              </ul>
-
-              <div class="tab-content">
-                <div class="tab-pane fade show active" id="out-{{ item_id }}" role="tabpanel" aria-labelledby="out-tab-{{ item_id }}">
-                  <div class="border rounded bg-light p-2">
-                    <pre class="mb-0 small" style="max-height: 350px; overflow: auto; white-space: pre-wrap;"><code>{{ r.stdout | default('') | e }}</code></pre>
-                  </div>
+        <details class="bg-gray-700 rounded-md">
+          <summary class="cursor-pointer p-4 text-gray-200 font-mono text-sm hover:bg-gray-600 transition-colors">
+            <span class="text-gray-400 mr-2">#{{ loop.index }}</span>
+            <span class="font-semibold mr-2">Command:</span>
+            <code class="bg-gray-700 px-2 py-1 rounded text-green-400 font-mono">{{ r.command }}</code>
+          </summary>
+          <div class="px-4 pb-4">
+            <div class="mt-4">
+              <details class="mb-3">
+                <summary class="cursor-pointer font-mono text-sm text-gray-200 hover:text-gray-100">Output</summary>
+                <div class="bg-gray-900 border border-gray-600 rounded p-4 mt-2">
+                  <pre class="text-green-400 font-mono text-sm whitespace-pre-wrap overflow-auto max-h-72"><code>{{ r.stdout | default('') | e }}</code></pre>
                 </div>
-                <div class="tab-pane fade" id="ana-{{ item_id }}" role="tabpanel" aria-labelledby="ana-tab-{{ item_id }}">
-                  <div class="border rounded bg-light p-2">
-                    <pre class="mb-0 small" style="max-height: 350px; overflow: auto; white-space: pre-wrap;"><code>{{ r.prompt_analysis | default('') }}</code></pre>
-                  </div>
+              </details>
+              <details>
+                <summary class="cursor-pointer font-mono text-sm text-gray-200 hover:text-gray-100">AI Analysis</summary>
+                <div class="bg-gray-900 border border-gray-600 rounded p-4 mt-2">
+                  <pre class="text-blue-300 font-mono text-sm whitespace-pre-wrap overflow-auto max-h-72"><code>{{ r.prompt_analysis | default('') | e }}</code></pre>
                 </div>
-              </div>
-
-              {% if r.tool %}
-                <div class="mt-2 text-muted small">Tool: {{ r.tool }}</div>
-              {% endif %}
+              </details>
             </div>
+            {% if r.tool %}
+              <div class="mt-4 text-gray-400 text-sm">Tool: {{ r.tool }}</div>
+            {% endif %}
           </div>
-        </div>
+        </details>
       {% endfor %}
     </div>
   </div>
 
-  <div class="d-flex gap-2">
-    <form method="post" action="/save" class="mb-0">
-      <textarea name="results_json" class="d-none" aria-hidden="true">{{ results|tojson }}</textarea>
-      <button type="submit" class="btn btn-success">Save session output (JSON)?</button>
+  <div class="flex gap-4 mt-6 mb-6">
+    <form method="post" action="/save">
+      <textarea name="results_json" class="hidden">{{ results|tojson }}</textarea>
+      <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
+        Save Session Output (JSON)
+      </button>
     </form>
-    <form method="post" action="/analysis" class="mb-0">
-      <button type="submit" class="btn btn-outline-primary">Generate conclusive analysis?</button>
+    <form method="post" action="/analysis">
+      <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
+        Generate Conclusive Analysis
+      </button>
     </form>
   </div>
 {% endif %}
 
-{% if conclusive_analysis %}
-<div>
-  <textarea id="conclusive_analysis" name="conclusive_analysis" rows="12" readonly>{{ conclusive_analysis }}</textarea>
+{% if analysis %}
+<div class="bg-gray-800 p-6 rounded-lg shadow-md mb-6">
+  <h3 class="text-xl font-semibold mb-4 text-gray-100">Conclusive Analysis</h3>
+  <textarea 
+    id="analysis" 
+    name="analysis" 
+    rows="12" 
+    readonly 
+    class="w-full px-3 py-2 bg-gray-700 text-gray-100 border border-gray-600 rounded-md resize-vertical font-mono">{{ analysis }}</textarea>
 </div>
 {% endif %}
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
 {% endblock %}

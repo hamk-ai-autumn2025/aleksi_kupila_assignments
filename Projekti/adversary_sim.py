@@ -40,7 +40,7 @@ def suggest():
             commands = extract_json(command_suggestions)  # Try extracting JSON 
             if validateStructure(commands):  # If JSON structure is valid
                 session.command_suggestions = commands
-                return render_template('index.html', suggestion=commands, results = all_results, error=None)
+                return render_template('index.html', suggestion=commands, results = all_results, success=f"Commands generated!")
             else:
                 return render_template('index.html', suggestion=None, results = all_results, error=f"Failed to validate JSON structure\nAI raw: {commands}")
         except Exception as e:
@@ -71,7 +71,7 @@ def run():
         if command_output and prompt_analysis:
             save_result(TEMP_FILE, command, command_output.stdout, command_output.stderr, prompt_analysis)
             all_results = load_results(TEMP_FILE)
-            return render_template('index.html', suggestion = session.command_suggestions, results = all_results, error="Success!")
+            return render_template('index.html', suggestion = session.command_suggestions, results = all_results, success=f"Executed {command}")
         else: 
             return render_template('index.html', suggestion = session.command_suggestions, results = all_results, error="Generating analysis failed")
 
@@ -85,11 +85,11 @@ def get_conclusive_analysis():
     try:
         all_results = load_results(TEMP_FILE)
         ai_analysis = conclusive_analysis(all_results)
-        return render_template('index.html', session.command_suggestions, results = all_results, conclusive_analysis=ai_analysis, error=None)
+        return render_template('index.html', suggestion = session.command_suggestions, results = all_results, analysis=ai_analysis, success = "Conclusive analysis generated!")
     
     except Exception as e:
         print(f"Error: generating conclusive analysis failed: {e}")
-        return render_template('index.html', session.command_suggestions, results = all_results, error=f"Failed to generate conclusive analysis\nAI raw: {ai_analysis}")
+        return render_template('index.html', suggestion = session.command_suggestions, results = all_results, error=f"Failed to generate conclusive analysis!")
 
 
 # --- When user clicks "Save session (JSON)" button
@@ -97,7 +97,7 @@ def get_conclusive_analysis():
 def save_output():
     all_results = load_results(TEMP_FILE)
     write_json(all_results)
-    return render_template('index.html', error="Output saved!")
+    return render_template('index.html', suggestion = session.command_suggestions, results = all_results, success="Output saved!")
 # --- Main page ---
 @app.route('/', methods=['GET'])
 def index():
