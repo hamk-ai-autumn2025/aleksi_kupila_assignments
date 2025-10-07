@@ -46,8 +46,8 @@ def valid_command(command):
     ALLOWED_TARGETS = ["dvwa", "192.168.88.1", "192.168.88.254", "localhost", "127.0.0.1"]
     FORBIDDEN_CHARS = [";", "&", "|", "`", "$(", ">", "<"]
     ALLOWED_FLAGS = {
-        "nmap": {"-sV", "-sC", "-p", "-A", "-T4", "-F"},
-        "nikto": {"-h", "-p"} # Example for nikto
+        "nmap": {"-sT", "-sV", "-sC", "-p", "-T4", "-F", "-Pn", "-n", "--top-ports", "--open", "--version-light", "-sL", "-r"},
+        "nikto": {"-h", "-p", "-ssl", "-nossl", "-tls", "-timeout", "-nointeractive", "-Display", "-Plugins", "-url"}
     }
     try:
         args = shlex.split(command)

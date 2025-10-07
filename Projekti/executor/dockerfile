@@ -1,7 +1,7 @@
 FROM alpine:3.19
 
 # Install needed packages
-RUN apk update && apk add --no-cache nmap perl sudo shadow bash nikto
+RUN apk update && apk add --no-cache nmap perl sudo shadow bash nikto nmap-nselibs nmap-scripts
 
 RUN chmod +x /usr/bin/nikto.pl \
  && ln -s /usr/bin/nikto.pl /usr/local/bin/nikto \
