@@ -3,7 +3,7 @@ from flask import Flask, request, render_template,  session
 from flask_session import Session
 from utils.openai_apis import ask_model, ask_analysis, conclusive_analysis
 from utils.checks import extract_json, validateStructure, valid_command
-from utils.file_utils import write_json, save_result, load_results, run_command
+from utils.file_utils import write_json, save_result, load_results, run_command, save_analysis
 
 EXECUTOR_CONTAINER = "command_executor"
 TEMP_FILE = "TEMP.json"
@@ -85,6 +85,7 @@ def get_conclusive_analysis():
     try:
         all_results = load_results(TEMP_FILE)
         ai_analysis = conclusive_analysis(all_results)
+        save_analysis(TEMP_FILE, ai_analysis)
         return render_template('index.html', suggestion = session.command_suggestions, results = all_results, analysis=ai_analysis, success = "Conclusive analysis generated!")
     
     except Exception as e:
@@ -97,7 +98,16 @@ def get_conclusive_analysis():
 def save_output():
     all_results = load_results(TEMP_FILE)
     write_json(all_results)
-    return render_template('index.html', suggestion = session.command_suggestions, results = all_results, success="Output saved!")
+    analysis = None
+    # Get the final analysis from the json
+    for entry in all_results:
+        if "final_analysis" in entry:
+            analysis = entry["final_analysis"]
+            break 
+    if analysis:
+        return render_template('index.html', suggestion = session.command_suggestions, results = all_results, analysis = analysis, success="Output saved!")
+    else:
+        return render_template('index.html', suggestion = session.command_suggestions, results = all_results, success="Output saved!")
 # --- Main page ---
 @app.route('/', methods=['GET'])
 def index():
