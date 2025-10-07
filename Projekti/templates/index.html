@@ -41,16 +41,16 @@
     <h3>Raw Output</h3>
     <div class="mb-3">
       <input type="hidden" name="command" value="{{ command|escape }}">
-      <textarea class="form-control" id="raw_out" name="command_output" rows="6" readonly>{{ command_output }}</textarea>
+      <textarea class="form-control" id="raw_out" name="command_output" rows="12" readonly>{{ command_output }}</textarea>
     </div>
 
     <h3>AI Analysis</h3>
     <div class="mb-3">
-      <textarea class="form-control" id="analysis" name="ai_analysis" rows="6" readonly>{{ ai_analysis }}</textarea>
+      <textarea class="form-control" id="analysis" name="prompt_analysis" rows="12" readonly>{{ prompt_analysis }}</textarea>
     </div>
   </div>
 
-  <button type="submit" class="btn btn-success">Save output (JSON)?</button>
+  <button type="submit" class="btn btn-success">Save session output (JSON)?</button>
 </form>
 {% endif %}
 

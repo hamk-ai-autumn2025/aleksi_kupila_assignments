@@ -1,4 +1,5 @@
 import os, time, uuid, json
+import ast
 
 def find_new_file_name(base_name: str) -> str:
     """
@@ -22,19 +23,29 @@ def find_new_file_name(base_name: str) -> str:
             return new_name
         i += 1
 
-def write_json(command, output, analysis):
-    '''
-    Write nmap command output to a json file
-    '''
+def write_json(session_output):
+    """
+    Write session output to a pretty-printed JSON file.
+    Accepts dict/list, JSON string, or Python-literal string and normalizes to JSON.
+    Returns the output filename.
+    """
+    # Normalize input into a Python object
+    if isinstance(session_output, (dict, list)):
+        data = session_output
+    elif isinstance(session_output, str):
+        s = session_output.strip()
+        try:
+            data = json.loads(s)  # valid JSON string
+        except json.JSONDecodeError:
+            try:
+                data = ast.literal_eval(s)  # Python literal like "[{'a': 1}]"
+            except Exception:
+                data = {"raw": s}  # fallback: wrap raw string
+    else:
+        data = session_output
+
     filename = find_new_file_name("tool_output.json")
-    record = {
-        "id": str(uuid.uuid4()),
-        "timestamp": time.time(),
-        "command": command,
-        "stdout": output,
-        "stderr": "",
-        "exit_code": None,
-        'ai_analysis': analysis
-    }
-    with open(filename, 'w') as f:
-        json.dump(record, f, indent=4, ensure_ascii=False)
+    with open(filename, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=4, ensure_ascii=False, sort_keys=False, default=str)
+        f.write("\n")
+    return filename

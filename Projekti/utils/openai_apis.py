@@ -19,7 +19,14 @@ You are a cybersecurity analyst. Analyze the following tool output and:
 3) Suggest concrete mitigations.
 Return a concise bullet list.
 """
-
+CONCLUDE_PROMPT = """
+You are a cybersecurity analyst. You will be given outputs of one or more commands ran on a web server.
+Analyze the outputs, and:
+1. Summarize findings
+2. List severity: High/Medium/Low for each issue mentioned.
+3) Suggest concrete mitigations.
+Return a concise bullet list.
+"""
 def ask_model(prompt, max_tokens=400):
     '''
     Ask model for a command suggestion
@@ -47,6 +54,25 @@ def ask_analysis(prompt, max_tokens=400):
       resp = client.responses.create(
             model="gpt-4.1-mini",
             instructions=ANALYZE_PROMPT,
+            input=prompt,
+            temperature=0.0,
+            max_output_tokens=max_tokens
+        )
+      print(resp.output_text)
+      return resp.output_text
+    
+    except Exception as e:
+       print(f"Error generating analysis: {e}")
+       return None
+    
+def conclusive_analysis(prompt, max_tokens=1000):
+    '''
+    Ask model conclusive analysis of command outputs
+    '''
+    try:
+      resp = client.responses.create(
+            model="gpt-4.1-mini",
+            instructions=CONCLUDE_PROMPT,
             input=prompt,
             temperature=0.0,
             max_output_tokens=max_tokens
