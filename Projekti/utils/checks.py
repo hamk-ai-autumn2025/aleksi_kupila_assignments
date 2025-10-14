@@ -43,10 +43,10 @@ def valid_command(command):
     Checks if a command is "safe" to run in a local Docker container
     '''
     # The 192. addresses are my PC and router
-    ALLOWED_TARGETS = ["dvwa", "192.168.88.1", "192.168.88.254", "localhost", "127.0.0.1"]
+    ALLOWED_TARGETS = ["dvwa", "192.168.88.1", "192.168.88.254", '172.20.0.0', "localhost", "127.0.0.1"]
     FORBIDDEN_CHARS = [";", "&", "|", "`", "$(", ">", "<"]
     ALLOWED_FLAGS = {
-        "nmap": {"-sT", "-sV", "-sC", "-p", "-T4", "-F", "-Pn", "-n", "--top-ports", "--open", "--version-light", "-sL", "-r"},
+        "nmap": {"-sT", "-sn","-sV", "-sC", "-p", "-T4", "-F", "-Pn", "-n", "--top-ports", "--open", "--version-light", "-sL", "-r"},
         "nikto": {"-h", "-p", "-ssl", "-nossl", "-tls", "-timeout", "-nointeractive", "-Display", "-Plugins", "-url"}
     }
     try:
