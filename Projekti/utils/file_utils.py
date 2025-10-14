@@ -15,7 +15,7 @@ def run_command(EXECUTOR_CONTAINER, command: list[str]):
             capture_output=True,
             text=True
         )
-        print(result)
+        # print(result)
         return result
     
     except Exception as e:

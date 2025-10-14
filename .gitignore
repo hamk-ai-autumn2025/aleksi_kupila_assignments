@@ -15,6 +15,7 @@ __pycache__/
 
 # Document files
 *.txt
+!requirements.txt
 *.json
 !sdxl_turbo_workflow.json
 !sdxlturbo_example.json
