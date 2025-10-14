@@ -12,18 +12,13 @@ client = OpenAI(
   api_key=api_key,
 
 )
-def call_openrouter_api(prompt, model):
+def call_openrouter_api(messages, model):
 
     print(f"Fetching API response from {model}...")
     try:
         response = client.chat.completions.create(
             model=model,  # You can change this to any supported model
-            messages=[
-                {
-                    "role": "user", 
-                    "content": f"{prompt}"
-                }
-            ]
+            messages=messages
         )
     except Exception as e:
         print(f"Error fetching API response: {e}")
