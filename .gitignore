@@ -10,6 +10,7 @@ __pycache__/
 *.webp
 *.png
 !example.png
+!logo.png
 *.jpg
 *.jpeg
 
