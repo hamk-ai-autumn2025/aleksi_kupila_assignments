@@ -45,21 +45,21 @@ async def main(message: cl.Message):
 async def set_starters():
     return [
         cl.Starter(
-            label="Morning routine ideation",
-            message="Can you help me create a personalized morning routine that would help increase my productivity throughout the day? Start by asking me about my current habits and what activities energize me in the morning.",
+            label="Create me a workout routine",
+            message="Can you create me a workout routine? Start by asking me my starting points. Start by asking things such as age, weight, how much I move, how fit I am etc.",
         ),
 
         cl.Starter(
-            label="Explain superconductors",
-            message="Explain superconductors like I'm five years old.",
+            label="Explain object-oriented programming",
+            message="Explain object-oriented programming to a non-technical person. You can assume they have no prior knowledge of the subject.",
         ),
         cl.Starter(
-            label="Python script for daily email reports",
-            message="Write a script to automate sending daily email reports in Python, and walk me through how I would set it up.",
+            label="Create a Tetris clone",
+            message="Write me a simple Tetris clone in HTML/JS/CSS. The game must have increasing difficulty, and the next incoming piece must be shown to the user.",
             command="code",
         ),
         cl.Starter(
-            label="Text inviting friend to wedding",
-            message="Write a text asking a friend to be my plus-one at a wedding next month. I want to keep it super short and casual, and offer an out.",
+            label="Write an email to a customer to explain why they are wrong",
+            message="Write a formal and professional email to a customer that explains why they are wrong on a subject.",
         )
     ]
