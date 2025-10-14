@@ -22,7 +22,7 @@ class Comfy():
         seed_node_id (str): Node ID for seed parameter in workflow
     """
     
-    def __init__(self, workflow_path: str = "/workflows/sdxlturbo_example.json", api_url: str = "http://127.0.0.1:8188", pos_node_id: str = "6", neg_node_id: str = "7", seed_node_id: str = "13", base_dir: str = None):
+    def __init__(self, workflow_path: str = "/workflows/sdxlturbo_example.json", api_url: str = "http://127.0.0.1:8188", pos_node_id: str = "6", neg_node_id: str = "7", resolution_id: str = "5", seed_node_id: str = "13", base_dir: str = None):
         """
         Initialize the Comfy API client.
         
@@ -46,6 +46,7 @@ class Comfy():
         self.api_url = api_url
         self.pos_node_id = pos_node_id
         self.neg_node_id = neg_node_id
+        self.resolution_id = resolution_id
         self.seed_node_id = seed_node_id
 
         # Resolve workflow path
@@ -164,7 +165,7 @@ class Comfy():
             
             time.sleep(interval)
 
-    def get_image(self, pos_prompt, neg_prompt):
+    def get_image(self, pos_prompt="Portrait of Super Mario and Doom Slayer", neg_prompt="", width=1024, height=1024, seed = randint(1,99999999)):
         """
         Generate an image using the provided prompts.
         
@@ -180,6 +181,7 @@ class Comfy():
             str: Path to the generated image file if successful, None otherwise
         """
 
+        print(f"Received generation call: width: {width}, height: {height}, seed: {seed}")
         if not self.workflow:
             self.load_workflow()
 
@@ -188,7 +190,9 @@ class Comfy():
         # Insert positive and negative prompts into the loaded workflow
         workflow[f"{self.pos_node_id}"]["inputs"]["text"] = pos_prompt
         workflow[f"{self.neg_node_id}"]["inputs"]["text"] = neg_prompt
-        workflow[f"{self.seed_node_id}"]["inputs"]["noise_seed"] = randint(1,9999999)  # Random seed
+        workflow[f"{self.resolution_id}"]["inputs"]["width"] = str(width)
+        workflow[f"{self.resolution_id}"]["inputs"]["height"] = str(height)
+        workflow[f"{self.seed_node_id}"]["inputs"]["noise_seed"] = str(seed)
 
         # Queue prompt, get prompt request ID
         prompt_id_json = self.queue_prompt(workflow)
