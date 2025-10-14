@@ -2,6 +2,8 @@ import chainlit as cl
 from openrouter_utils import call_openrouter_api
 from chainlit.input_widget import Select
 
+CONTEXT_LENGTH = 10
+
 @cl.on_chat_start
 async def on_chat_start():
     print("A new chat session has started!")
@@ -31,11 +33,11 @@ async def main(message: cl.Message):
     history = cl.chat_context.to_openai()
 
     # If chat history is over 10 messages, remove last message from the context
-    if len(history) > 10:
-        history = history[1:]
+    if len(history) > CONTEXT_LENGTH:
+        history = history[-CONTEXT_LENGTH:]
     resp = call_openrouter_api(history, model=model)
     print(history)
-    
+
     if resp:
         await cl.Message(
             author=model,
