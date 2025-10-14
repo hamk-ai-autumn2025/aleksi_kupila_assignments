@@ -26,11 +26,16 @@ async def setup_agent(settings):
 @cl.on_message
 async def main(message: cl.Message):
     print(f"User sent: {message.content}")
-    # Get the selected model from chat settings
+
     model = cl.user_session.get("model")
+    history = cl.chat_context.to_openai()
 
-    resp = call_openrouter_api(message.content, model=model)
-
+    # If chat history is over 10 messages, remove last message from the context
+    if len(history) > 10:
+        history = history[1:]
+    resp = call_openrouter_api(history, model=model)
+    print(history)
+    
     if resp:
         await cl.Message(
             author=model,
