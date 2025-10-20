@@ -20,12 +20,12 @@ def get_api_key():
 def news_summarizer(client, prompt, time_period):
 
     sys_prompt_summarizer = """
-        You are a high-speed news extractor. 
+        You are a high-speed news summarizer/extractor. 
         Your job is to find news articles, as well as latest developments of the given topic, and format them clearly. 
 
         - Present the results as a numbered list.
         - For each item, provide the article's/posts title in bold.
-        - Below the title, provide the source name
+        - Below the title, provide the source name, as well as how old the article/post is
         - A short summary (2-3 sentences) of the article/post
         - Lastly, provide the link to the article/post
         - Do not include any introductory or concluding sentences. Begin directly with the first item.
