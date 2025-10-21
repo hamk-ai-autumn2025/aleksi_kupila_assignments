@@ -3,7 +3,7 @@ from flask import Flask, request, render_template,  session, jsonify
 from flask_session import Session
 from utils.openai_apis import ask_model, ask_analysis, conclusive_analysis
 from utils.checks import extract_json, validateStructure, valid_command
-from utils.file_utils import write_json, save_result, load_results, run_command, save_analysis, clean_temp
+from utils.file_utils import write_json, save_result, load_results, run_command, save_analysis, clean_temp, get_analysis
 
 EXECUTOR_CONTAINER = "command_executor"
 TEMP_FILE = "TEMP.json"
@@ -23,7 +23,9 @@ clean_temp(TEMP_FILE)
 
 def render_partial(template_name, **context):
     """Render a Jinja template fragment and return it as JSON."""
-    html = render_template(template_name, **context)
+    analysis = get_analysis(TEMP_FILE)
+    html = render_template(template_name, **context, analysis = analysis)
+    
     return jsonify({'html': html})
 
 # --- When user clicks "Get command suggestion" button
@@ -54,6 +56,7 @@ def suggest():
 def run():
     command = request.form['approved_cmd']
     all_results = load_results(TEMP_FILE)
+    analysis = get_analysis(TEMP_FILE)
 
     if command:
         ok, reason = valid_command(command)
@@ -68,6 +71,7 @@ def run():
         command_output = (run_command(EXECUTOR_CONTAINER, command))
         prompt_analysis = ask_analysis(command_output.stdout)
         session.executed_commands.append(command)
+
         if command_output and prompt_analysis:
             save_result(TEMP_FILE, command, command_output.stdout, command_output.stderr, prompt_analysis)
             all_results = load_results(TEMP_FILE)
@@ -86,7 +90,7 @@ def get_conclusive_analysis():
         all_results = load_results(TEMP_FILE)
         ai_analysis = conclusive_analysis(all_results)
         save_analysis(TEMP_FILE, ai_analysis)
-        return render_partial('answer.html', suggestion = session.command_suggestions, results = all_results, analysis=ai_analysis, success = "Conclusive analysis generated!")
+        return render_partial('answer.html', suggestion = session.command_suggestions, results = all_results, success = "Conclusive analysis generated!")
     
     except Exception as e:
         print(f"Error: generating conclusive analysis failed: {e}")
@@ -98,16 +102,7 @@ def get_conclusive_analysis():
 def save_output():
     all_results = load_results(TEMP_FILE)
     write_json(all_results)
-    analysis = None
-    # Get the final analysis from the json
-    for entry in all_results:
-        if "final_analysis" in entry:
-            analysis = entry["final_analysis"]
-            break 
-    if analysis:
-        return render_partial('answer.html', suggestion = session.command_suggestions, results = all_results, analysis = analysis, success="Output saved!")
-    else:
-        return render_partial('answer.html', suggestion = session.command_suggestions, results = all_results, success="Output saved!")
+    return render_partial('answer.html', suggestion = session.command_suggestions, results = all_results, success="Output saved!")
 
 # --- Resets page, temp file and session storage ---
 @app.route('/reset', methods=['POST'])

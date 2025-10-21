@@ -100,6 +100,17 @@ def save_result(TEMP_FILE, command, stdout, stderr, prompt_analysis):
     except Exception as e:
         print(f"Error: saving output to a temporary file failed! {e}")
 
+def get_analysis(TEMP_FILE):
+    """
+    Fetches final analysis from temp file, otherwise returns none
+    """
+    all_results = load_results(TEMP_FILE)
+    for entry in all_results:
+        if "final_analysis" in entry:
+            analysis = entry["final_analysis"]
+            return analysis
+    return None
+
 def save_analysis(TEMP_FILE, final_analysis_text):
     '''
     Save final analysis on a file
