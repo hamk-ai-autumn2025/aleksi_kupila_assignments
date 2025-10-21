@@ -18,7 +18,10 @@ forms.forEach(form => {
                     body: formData
                 });
                 const data = await res.json();
-                responseDiv.innerHTML = data.html; // insert the rendered HTML
+                if (responseContainer)
+                    responseContainer.outerHTML = data.html;
+                else
+                    form.insertAdjacentHTML('afterend', data.html);
             } catch (err) {
                 responseDiv.textContent = 'Error: ' + err.message;
             } finally {

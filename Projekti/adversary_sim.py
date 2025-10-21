@@ -37,8 +37,9 @@ def suggest():
             commands = extract_json(command_suggestions)  # Try extracting JSON 
             if validateStructure(commands):  # If JSON structure is valid
                 session.command_suggestions = commands
-                #suggest_html = render_template('index.html', suggestion=commands, results = all_results, success=f"Commands generated!")
-                #return jsonify({'html': suggest_html})
+                
+                #suggest_html = render_template('suggestion.html', suggestion=commands, results = all_results, success=f"Commands generated!")
+                #return jsonify({'suggestion': suggest_html})
                 return render_template('index.html', suggestion=commands, results = all_results, success=f"Commands generated!")
             else:
                 return render_template('index.html', suggestion=None, results = all_results, error=f"Failed to validate JSON structure\nAI raw: {commands}")
