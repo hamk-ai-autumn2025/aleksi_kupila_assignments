@@ -14,7 +14,7 @@
 {% if suggestion %}
   <div class="bg-gray-800 p-6 rounded-lg shadow-md mb-6">
     <h3 class="text-xl font-semibold mb-4 text-gray-100">Suggested Scan Commands</h3>
-    <form method="post" action="/run" class="space-y-3" id="run_form">
+    <form method="post" action="/run" class="space-y-3" id="execute_form">
       {% for cmd in suggestion %}
         <div class="flex items-center">
           <input class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-500 focus:ring-2" type="radio" name="approved_cmd" id="cmd{{ loop.index }}" value="{{ cmd.command }}" {% if loop.first %}checked{% endif %}>

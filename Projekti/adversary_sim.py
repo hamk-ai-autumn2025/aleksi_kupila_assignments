@@ -21,6 +21,11 @@ session.command_suggestions = []
 # Clean temp file
 clean_temp(TEMP_FILE)
 
+def render_partial(template_name, **context):
+    """Render a Jinja template fragment and return it as JSON."""
+    html = render_template(template_name, **context)
+    return jsonify({'html': html})
+
 # --- When user clicks "Get command suggestion" button
 @app.route('/suggest', methods=['POST'])
 def suggest():
@@ -32,20 +37,17 @@ def suggest():
         command_suggestions = ask_model(instruction, 400)
         # If suggestion is EMPTY
         if command_suggestions == "[]":
-            return render_template('index.html', suggestion=None, results = all_results, error=f"AI answer was empty. Maybe the prompt asked for a forbidden command?\nAI raw: {command_suggestions}")
+            return render_partial('answer.html', suggestion=None, results = all_results, error=f"AI answer was empty. Maybe the prompt asked for a forbidden command?\nAI raw: {command_suggestions}")
         try:
             commands = extract_json(command_suggestions)  # Try extracting JSON 
             if validateStructure(commands):  # If JSON structure is valid
                 session.command_suggestions = commands
-                
-                #suggest_html = render_template('suggestion.html', suggestion=commands, results = all_results, success=f"Commands generated!")
-                #return jsonify({'suggestion': suggest_html})
-                return render_template('index.html', suggestion=commands, results = all_results, success=f"Commands generated!")
+                return render_partial('answer.html', suggestion=commands, results = all_results, success=f"Commands generated!")
             else:
-                return render_template('index.html', suggestion=None, results = all_results, error=f"Failed to validate JSON structure\nAI raw: {commands}")
+                return render_partial('answer.html', suggestion=None, results = all_results, error=f"Failed to validate JSON structure\nAI raw: {commands}")
         except Exception as e:
-            return render_template("index.html", suggestion=None, results = all_results, error=f"Failed to parse AI JSON: {e}\nAI raw: {command_suggestions}")
-    return render_template('index.html', suggestion = None, results = all_results, error="Please enter instructions above")
+            return render_partial("answer.html", suggestion=None, results = all_results, error=f"Failed to parse AI JSON: {e}\nAI raw: {command_suggestions}")
+    return render_partial('answer.html', suggestion = None, results = all_results, error="Please enter instructions above")
 
 # --- When user clicks "Execute command in docker" button
 @app.route('/run', methods=['POST'])
@@ -57,26 +59,24 @@ def run():
         ok, reason = valid_command(command)
 
         if command in session.executed_commands:
-            return render_template("index.html", suggestion = session.command_suggestions, results = all_results, error=f"Command already executed in this session!:")
+            return render_partial("answer.html", suggestion = session.command_suggestions, results = all_results, error=f"Command already executed in this session!:")
         
         if not ok:
-            return render_template("index.html", suggestion = session.command_suggestions, results = all_results, error=f"Command rejected: {reason}")
+            return render_partial("answer.html", suggestion = session.command_suggestions, results = all_results, error=f"Command rejected: {reason}")
         
         # At this point, command is recognized as VALID by basic safety checks
         command_output = (run_command(EXECUTOR_CONTAINER, command))
         prompt_analysis = ask_analysis(command_output.stdout)
         session.executed_commands.append(command)
-        #print(command_output.stdout)
-        #print(prompt_analysis)
         if command_output and prompt_analysis:
             save_result(TEMP_FILE, command, command_output.stdout, command_output.stderr, prompt_analysis)
             all_results = load_results(TEMP_FILE)
-            return render_template('index.html', suggestion = session.command_suggestions, results = all_results, success=f"Executed {command}")
+            return render_partial('answer.html', suggestion = session.command_suggestions, results = all_results, success=f"Executed {command}")
         else: 
-            return render_template('index.html', suggestion = session.command_suggestions, results = all_results, error="Generating analysis failed")
+            return render_partial('answer.html', suggestion = session.command_suggestions, results = all_results, error="Generating analysis failed")
 
     else:
-        return render_template('index.html', suggestion = session.command_suggestions, results = all_results, error="No command selected to run")
+        return render_partial('answer.html', suggestion = session.command_suggestions, results = all_results, error="No command selected to run")
 
 
 # ... When user clicks "Get conclusive analysis" button
@@ -86,11 +86,11 @@ def get_conclusive_analysis():
         all_results = load_results(TEMP_FILE)
         ai_analysis = conclusive_analysis(all_results)
         save_analysis(TEMP_FILE, ai_analysis)
-        return render_template('index.html', suggestion = session.command_suggestions, results = all_results, analysis=ai_analysis, success = "Conclusive analysis generated!")
+        return render_partial('answer.html', suggestion = session.command_suggestions, results = all_results, analysis=ai_analysis, success = "Conclusive analysis generated!")
     
     except Exception as e:
         print(f"Error: generating conclusive analysis failed: {e}")
-        return render_template('index.html', suggestion = session.command_suggestions, results = all_results, error=f"Failed to generate conclusive analysis!")
+        return render_partial('answer.html', suggestion = session.command_suggestions, results = all_results, error=f"Failed to generate conclusive analysis!")
 
 
 # --- When user clicks "Save session (JSON)" button
@@ -105,9 +105,9 @@ def save_output():
             analysis = entry["final_analysis"]
             break 
     if analysis:
-        return render_template('index.html', suggestion = session.command_suggestions, results = all_results, analysis = analysis, success="Output saved!")
+        return render_partial('answer.html', suggestion = session.command_suggestions, results = all_results, analysis = analysis, success="Output saved!")
     else:
-        return render_template('index.html', suggestion = session.command_suggestions, results = all_results, success="Output saved!")
+        return render_partial('answer.html', suggestion = session.command_suggestions, results = all_results, success="Output saved!")
 
 # --- Main page, resets temp file ---
 @app.route('/', methods=['GET'])

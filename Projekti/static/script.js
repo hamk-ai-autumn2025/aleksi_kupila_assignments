@@ -5,28 +5,24 @@ const responseDiv = document.getElementById('response');
 const spinner = document.getElementById('spinner');
 
 const forms = [suggest_form, execute_form, analysis_form];
+console.log("Binding forms...");
+document.addEventListener('submit', async (e) => {
+  const form = e.target;
+  if (!['suggest_form', 'execute_form', 'analysis_form'].includes(form.id)) return;
 
-forms.forEach(form => {
-    if (form) {
-        form.addEventListener('submit', async (e) =>{
+  e.preventDefault();
+  spinner.style.display = 'block';
 
-            spinner.style.display = 'block';
-            try {
-                const formData = new FormData(form);
-                const res = await fetch(form.action, {
-                    method: 'POST',
-                    body: formData
-                });
-                const data = await res.json();
-                if (responseContainer)
-                    responseContainer.outerHTML = data.html;
-                else
-                    form.insertAdjacentHTML('afterend', data.html);
-            } catch (err) {
-                responseDiv.textContent = 'Error: ' + err.message;
-            } finally {
-                spinner.style.display = 'none';
-            }
-        });
-    }
+  try {
+    const res = await fetch(form.action, {
+      method: 'POST',
+      body: new FormData(form)
+    });
+    const data = await res.json();
+    responseDiv.innerHTML = data.html;
+  } catch (err) {
+    responseDiv.textContent = 'Error: ' + err.message;
+  } finally {
+    spinner.style.display = 'none';
+  }
 });
