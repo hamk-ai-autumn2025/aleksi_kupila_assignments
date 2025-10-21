@@ -3,7 +3,7 @@ from flask import Flask, request, render_template,  session
 from flask_session import Session
 from utils.openai_apis import ask_model, ask_analysis, conclusive_analysis
 from utils.checks import extract_json, validateStructure, valid_command
-from utils.file_utils import write_json, save_result, load_results, run_command, save_analysis
+from utils.file_utils import write_json, save_result, load_results, run_command, save_analysis, clean_temp
 
 EXECUTOR_CONTAINER = "command_executor"
 TEMP_FILE = "TEMP.json"
@@ -18,11 +18,8 @@ session = Session(app)
 session.executed_commands = []
 session.command_suggestions = []
 
-# Clean temp file:
-if os.path.exists(TEMP_FILE):
-    with open(TEMP_FILE, "w") as f:
-        json.dump([], f)
-
+# Clean temp file
+clean_temp(TEMP_FILE)
 
 # --- When user clicks "Get command suggestion" button
 @app.route('/suggest', methods=['POST'])
@@ -108,7 +105,10 @@ def save_output():
         return render_template('index.html', suggestion = session.command_suggestions, results = all_results, analysis = analysis, success="Output saved!")
     else:
         return render_template('index.html', suggestion = session.command_suggestions, results = all_results, success="Output saved!")
-# --- Main page ---
+
+# --- Main page, resets temp file ---
 @app.route('/', methods=['GET'])
+@app.route('/reset', methods=['POST'])
 def index():
+    clean_temp(TEMP_FILE)
     return render_template('index.html', instruction = False)

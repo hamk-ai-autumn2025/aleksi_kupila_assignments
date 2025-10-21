@@ -118,10 +118,19 @@ def save_analysis(TEMP_FILE, final_analysis_text):
     except Exception as e:
         print(f"Error: saving analysis failed: {e}")
 
+def clean_temp(TEMP_FILE):
+    '''
+    Cleans temporary file
+    Takes temp file name as argument
+    '''
+    if os.path.exists(TEMP_FILE):
+        with open(TEMP_FILE, "w") as f:
+            json.dump([], f)
 
 def load_results(TEMP_FILE):
     '''
     Load results from the temporary json file and return
+    Takes temp file name as argument
     '''
     if not os.path.exists(TEMP_FILE):
         return []
