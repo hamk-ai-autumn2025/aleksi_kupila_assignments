@@ -1,0 +1,60 @@
+{% if results %}
+  <div class="bg-gray-800 p-6 rounded-lg shadow-md mb-6">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-xl font-semibold text-gray-100">Scan Results</h3>
+      <span class="text-gray-400 text-sm">{{ results|length }} item(s)</span>
+    </div>
+
+    <div class="space-y-4">
+      {% for r in results%}
+        {% if r.command %}
+          <details class="bg-gray-700 rounded-md">
+            <summary class="cursor-pointer p-4 text-gray-200 font-mono text-sm hover:bg-gray-600 transition-colors">
+              <span class="text-gray-400 mr-2">#{{ loop.index }}</span>
+              <span class="font-semibold mr-2">Command:</span>
+              <code class="bg-gray-700 px-2 py-1 rounded text-green-400 font-mono">{{ r.command }}</code>
+            </summary>
+            <div class="px-4 pb-4">
+              <div class="mt-4">
+                <details class="mb-3">
+                  <summary class="cursor-pointer font-mono text-sm text-gray-200 hover:text-gray-100">Output</summary>
+                  <div class="bg-gray-900 border border-gray-600 rounded p-4 mt-2">
+                    <pre class="text-green-400 font-mono text-sm whitespace-pre-wrap overflow-auto max-h-72"><code>{{ r.stdout | default('') | e }}</code></pre>
+                  </div>
+                </details>
+                <details>
+                  <summary class="cursor-pointer font-mono text-sm text-gray-200 hover:text-gray-100">AI Analysis</summary>
+                  <div class="bg-gray-900 border border-gray-600 rounded p-4 mt-2">
+                    <pre class="text-blue-300 font-mono text-sm whitespace-pre-wrap overflow-auto max-h-72"><code>{{ r.prompt_analysis | default('') | e }}</code></pre>
+                  </div>
+                </details>
+              </div>
+              {% if r.tool %}
+                <div class="mt-4 text-gray-400 text-sm">Tool: {{ r.tool }}</div>
+              {% endif %}
+            </div>
+          </details>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="flex gap-4 mt-6 mb-6">
+    <form method="post" action="/save">
+      <textarea name="results_json" class="hidden">{{ results|tojson }}</textarea>
+      <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
+        Save Session Output (JSON)
+      </button>
+    </form>
+    <form method="post" action="/analysis" id="analysis_form">
+      <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
+        Generate Conclusive Analysis
+      </button>
+    </form>
+    <form method="post" action="/reset">
+      <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
+        Reset page
+      </button>
+    </form>
+  </div>
+{% endif %}

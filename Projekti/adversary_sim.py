@@ -1,5 +1,5 @@
 import os, json
-from flask import Flask, request, render_template,  session
+from flask import Flask, request, render_template,  session, jsonify
 from flask_session import Session
 from utils.openai_apis import ask_model, ask_analysis, conclusive_analysis
 from utils.checks import extract_json, validateStructure, valid_command
@@ -37,6 +37,8 @@ def suggest():
             commands = extract_json(command_suggestions)  # Try extracting JSON 
             if validateStructure(commands):  # If JSON structure is valid
                 session.command_suggestions = commands
+                #suggest_html = render_template('index.html', suggestion=commands, results = all_results, success=f"Commands generated!")
+                #return jsonify({'html': suggest_html})
                 return render_template('index.html', suggestion=commands, results = all_results, success=f"Commands generated!")
             else:
                 return render_template('index.html', suggestion=None, results = all_results, error=f"Failed to validate JSON structure\nAI raw: {commands}")
