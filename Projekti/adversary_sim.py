@@ -109,9 +109,16 @@ def save_output():
     else:
         return render_partial('answer.html', suggestion = session.command_suggestions, results = all_results, success="Output saved!")
 
+# --- Resets page, temp file and session storage ---
+@app.route('/reset', methods=['POST'])
+def reset():
+    clean_temp(TEMP_FILE)
+    session.executed_commands = []
+    session.command_suggestions = []
+    return render_template('index.html', instruction = False)
+
 # --- Main page, resets temp file ---
 @app.route('/', methods=['GET'])
-@app.route('/reset', methods=['POST'])
 def index():
     clean_temp(TEMP_FILE)
     return render_template('index.html', instruction = False)
