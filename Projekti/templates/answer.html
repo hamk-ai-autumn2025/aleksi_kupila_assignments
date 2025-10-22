@@ -12,25 +12,25 @@
 
 
 {% if suggestion %}
-  <div class="bg-gray-800 p-6 rounded-lg shadow-md mb-6">
-    <h3 class="text-xl font-semibold mb-4 text-gray-100">Suggested Scan Commands</h3>
-    <form method="post" action="/run" class="space-y-3" id="execute_form">
-      {% for cmd in suggestion %}
-        <div class="flex items-center">
-          <input class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-500 focus:ring-2" type="radio" name="approved_cmd" id="cmd{{ loop.index }}" value="{{ cmd.command }}" {% if loop.first %}checked{% endif %}>
-          <label class="ml-3 block text-sm font-medium text-gray-300 cursor-pointer" for="cmd{{ loop.index }}">
-            <span class="font-semibold text-gray-200">Tool:</span> {{ cmd.tool }} | <span class="font-semibold text-gray-200">Command:</span> <code class="bg-gray-700 px-2 py-1 rounded text-green-400 font-mono">{{ cmd.command }}</code>
-          </label>
-        </div>
-      {% endfor %}
-        <div class="flex items-center space-x-4">
-            <button type="submit" class="mt-4 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
-                Execute Selected Command
-            </button>
-            <div class="spinner" id="execute_spinner"></div>
-        </div>
-    </form>
-  </div>
+    <div class="bg-gray-800 p-6 rounded-lg shadow-md mb-6">
+        <h3 class="text-xl font-semibold mb-4 text-gray-100">Suggested Scan Commands</h3>
+        <form method="post" action="/run" class="space-y-3" id="execute_form">
+            {% for cmd in suggestion %}
+                <div class="flex items-center">
+                    <input class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-500 focus:ring-2" type="radio" name="approved_cmd" id="cmd{{ loop.index }}" value="{{ cmd.command }}" {% if loop.first %}checked{% endif %}>
+                    <label class="ml-3 block text-sm font-medium text-gray-300 cursor-pointer" for="cmd{{ loop.index }}">
+                        <span class="font-semibold text-gray-200">Tool:</span> {{ cmd.tool }} | <span class="font-semibold text-gray-200">Command:</span> <code class="bg-gray-700 px-2 py-1 rounded text-green-400 font-mono">{{ cmd.command }}</code>
+                    </label>
+                </div>
+            {% endfor %}
+                <div class="flex items-center space-x-4 mt-4">
+                        <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
+                                Execute Selected Command
+                        </button>
+                        <div class="spinner" id="execute_spinner"></div>
+                </div>
+        </form>
+    </div>
 {% endif %}
 
 {% if results %}
@@ -75,7 +75,7 @@
   </div>
 
   <div class="flex gap-4 mt-6 mb-6">
-    <form method="post" action="/save">
+    <form method="post" action="/save" id="save_form">
       <textarea name="results_json" class="hidden">{{ results|tojson }}</textarea>
       <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
         Save Session Output (JSON)
@@ -88,11 +88,6 @@
             </button>
             <div class="spinner" id="analysis_spinner"></div>
         </div>
-    </form>
-    <form method="post" action="/reset">
-        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
-            Reset page
-        </button>
     </form>
   </div>
 {% endif %}

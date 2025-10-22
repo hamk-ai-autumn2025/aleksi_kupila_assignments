@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const suggest_form = document.getElementById('suggest_form');
     const execute_form = document.getElementById('execute_form');
     const analysis_form = document.getElementById('analysis_form');
+    const save_form = document.getElementById('save_form');
     const responseDiv = document.getElementById('response');
 
   const forms = [suggest_form, execute_form, analysis_form];
@@ -13,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const execute_spinner = document.getElementById('execute_spinner');
     const analysis_spinner = document.getElementById('analysis_spinner');
     const form = e.target;
-    if (!['suggest_form', 'execute_form', 'analysis_form'].includes(form.id)) return;
+    if (!['suggest_form', 'execute_form', 'analysis_form', 'save_form'].includes(form.id)) return;
 
     e.preventDefault();
     
