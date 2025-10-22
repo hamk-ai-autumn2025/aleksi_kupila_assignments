@@ -23,9 +23,12 @@
           </label>
         </div>
       {% endfor %}
-      <button type="submit" class="mt-4 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
-        Execute Selected Command
-      </button>
+        <div class="flex items-center space-x-4">
+            <button type="submit" class="mt-4 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
+                Execute Selected Command
+            </button>
+            <div class="spinner" id="execute_spinner"></div>
+        </div>
     </form>
   </div>
 {% endif %}
@@ -79,26 +82,29 @@
       </button>
     </form>
     <form method="post" action="/analysis" id="analysis_form">
-      <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
-        Generate Conclusive Analysis
-      </button>
+        <div class="flex items-center space-x-4">
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
+                Generate Conclusive Analysis
+            </button>
+            <div class="spinner" id="analysis_spinner"></div>
+        </div>
     </form>
     <form method="post" action="/reset">
-      <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
-        Reset page
-      </button>
+        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
+            Reset page
+        </button>
     </form>
   </div>
 {% endif %}
 
 {% if analysis %}
     <div class="bg-gray-800 p-6 rounded-lg shadow-md mb-6">
-    <h3 class="text-xl font-semibold mb-4 text-gray-100">Conclusive Analysis</h3>
-    <textarea 
-        id="analysis" 
-        name="analysis" 
-        rows="12" 
-        readonly 
-        class="w-full px-3 py-2 bg-gray-700 text-gray-100 border border-gray-600 rounded-md resize-vertical font-mono">{{ analysis }}</textarea>
+        <h3 class="text-xl font-semibold mb-4 text-gray-100">Conclusive Analysis</h3>
+        <textarea 
+            id="analysis" 
+            name="analysis" 
+            rows="12" 
+            readonly 
+            class="w-full px-3 py-2 bg-gray-700 text-gray-100 border border-gray-600 rounded-md resize-vertical font-mono">{{ analysis }}</textarea>
     </div>
 {% endif %}
