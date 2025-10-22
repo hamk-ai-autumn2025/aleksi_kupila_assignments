@@ -17,12 +17,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!['suggest_form', 'execute_form', 'analysis_form', 'save_form'].includes(form.id)) return;
 
     e.preventDefault();
-    
+    const formData = new FormData(form)
+
     if (form.id == "suggest_form"){
         suggest_spinner.style.display = 'block';
     }
     if (form.id == "execute_form"){
+      const action = e.submitter?.value;
+      if (action == "run"){
         execute_spinner.style.display = 'block';
+      }
+      formData.append('action', action);
     }
     if (form.id == "analysis_form"){
         analysis_spinner.style.display = 'block';
@@ -31,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const res = await fetch(form.action, {
         method: 'POST',
-        body: new FormData(form)
+        body: formData
       });
       const data = await res.json();
       responseDiv.innerHTML = data.html;  

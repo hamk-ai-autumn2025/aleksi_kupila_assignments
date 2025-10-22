@@ -51,9 +51,16 @@ def suggest():
             return render_partial("answer.html", suggestion=None, results = all_results, error=f"Failed to parse AI JSON: {e}\nAI raw: {command_suggestions}")
     return render_partial('answer.html', suggestion = None, results = all_results, error="Please enter instructions above")
 
+def edit():
+    print("Reached edit function!")
+    return None
 # --- When user clicks "Execute command in docker" button
 @app.route('/run', methods=['POST'])
 def run():
+    action = request.form.get('action')
+    if action == 'edit':
+        edit()
+
     command = request.form['approved_cmd']
     all_results = load_results(TEMP_FILE)
     analysis = get_analysis(TEMP_FILE)
