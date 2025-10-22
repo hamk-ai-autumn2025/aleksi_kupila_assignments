@@ -9,29 +9,38 @@ document.addEventListener('DOMContentLoaded', () => {
   const forms = [suggest_form, execute_form, analysis_form];
   console.log("Binding forms...");
 
+  function display_spinner(form, formData, e, s_spinner, e_spinner, a_spinner){
+    if (form.id == "suggest_form"){
+        s_spinner.style.display = 'block';
+    }
+    if (form.id == "execute_form"){
+      const action = e.submitter?.value;
+      if (action == "run"){
+        e_spinner.style.display = 'block';
+      }
+      formData.append('action', action);
+    }
+    if (form.id == "analysis_form"){
+        a_spinner.style.display = 'block';
+    }
+  }
+  function disable_spinner(spinners){
+    for (let spinner of spinners){
+      if (spinner){
+        spinner.style.display = 'none';
+      }
+    }
+  }
   document.addEventListener('submit', async (e) => {
-    const suggest_spinner = document.getElementById('suggest_spinner');
-    const execute_spinner = document.getElementById('execute_spinner');
-    const analysis_spinner = document.getElementById('analysis_spinner');
+    s_spinner  = document.getElementById('suggest_spinner');
+    e_spinner = document.getElementById('execute_spinner');
+    a_spinner = document.getElementById('analysis_spinner');
     const form = e.target;
     if (!['suggest_form', 'execute_form', 'analysis_form', 'save_form'].includes(form.id)) return;
 
     e.preventDefault();
     const formData = new FormData(form)
-
-    if (form.id == "suggest_form"){
-        suggest_spinner.style.display = 'block';
-    }
-    if (form.id == "execute_form"){
-      const action = e.submitter?.value;
-      if (action == "run"){
-        execute_spinner.style.display = 'block';
-      }
-      formData.append('action', action);
-    }
-    if (form.id == "analysis_form"){
-        analysis_spinner.style.display = 'block';
-    }
+    display_spinner(form, formData, e, s_spinner, e_spinner, a_spinner)
 
     try {
       const res = await fetch(form.action, {
@@ -43,15 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (err) {
       responseDiv.textContent = 'Error: ' + err.message;
     } finally {
-        if (suggest_spinner){
-            suggest_spinner.style.display = 'none';
-        }
-        if (execute_spinner){
-            execute_spinner.style.display = 'none';
-        }
-        if (analysis_spinner){
-            analysis_spinner.style.display = 'none';
-        }
+        disable_spinner([s_spinner, e_spinner, a_spinner])
     }
   });
 });
