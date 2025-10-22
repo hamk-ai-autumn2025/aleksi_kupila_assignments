@@ -1,5 +1,5 @@
-Flask
-flask_session
-openai
-python-dotenv
-watchdog
+Flask==3.1.2
+flask_session==0.8.0
+openai==1.109.1
+python-dotenv==1.1.1
+watchdog==6.0.0
