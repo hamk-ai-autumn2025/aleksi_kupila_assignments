@@ -51,16 +51,21 @@ def suggest():
             return render_partial("answer.html", suggestion=None, results = all_results, error=f"Failed to parse AI JSON: {e}\nAI raw: {command_suggestions}")
     return render_partial('answer.html', suggestion = None, results = all_results, error="Please enter instructions above")
 
-def validate():
+def validate_cmd():
     print("Reached validation function!")
     return None
 
+def remove_cmd():
+    print("Reached command removal function!")
+    return None
 # --- When user clicks "Execute selected command" or "Edit selected command" button ---
 @app.route('/run', methods=['POST'])
 def run():
     action = request.form.get('action')
     if action == 'validate':
-        validate()
+        validate_cmd()
+    if action == 'remove':
+        remove_cmd()
 
     command = request.form['approved_cmd']
     all_results = load_results(TEMP_FILE)
