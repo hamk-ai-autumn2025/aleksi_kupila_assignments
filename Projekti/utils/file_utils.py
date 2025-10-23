@@ -81,9 +81,14 @@ def write_json(output):
     else:
         data = output
 
+    output_json = {
+        "session_id": str(uuid.uuid4()),
+        "timestamp": time.time(),
+        "entries": data
+    }
     filename = find_new_file_name("tool_output.json")
     with open(filename, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=4, ensure_ascii=False, sort_keys=False, default=str)
+        json.dump(output_json, f, indent=4, ensure_ascii=False, sort_keys=False, default=str)
         f.write("\n")
     return filename
 
@@ -127,18 +132,24 @@ def get_analysis(TEMP_FILE):
             return analysis
     return None
 
-def save_analysis(TEMP_FILE, final_analysis_text):
+def save_analysis(TEMP_FILE, commands, final_analysis_text):
     '''
     Save final analysis on a file
     '''
+    entry = {
+        "id": str(uuid.uuid4()),
+        "timestamp": time.time(),
+        "based_on": commands,
+        "final_analysis": final_analysis_text
+    }
     try:
         with open(TEMP_FILE, "r+") as f:
             data = json.load(f)
             # If the file is a list of entries, append a separate final analysis record
             if isinstance(data, list):
-                data.append({"final_analysis": final_analysis_text})
+                data.append(entry)
             else:
-                data["final_analysis"] = final_analysis_text
+                data[entry] = entry
             f.seek(0)
             json.dump(data, f, indent=4)
             f.truncate()

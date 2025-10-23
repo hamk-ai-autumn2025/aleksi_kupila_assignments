@@ -117,10 +117,16 @@
   </div>
 
   <div class="flex gap-4 mt-6 mb-6">
-    <form method="post" action="/save" id="save_form">
+    <form method="post" action="/save_json" id="save_json">
       <textarea name="results_json" class="hidden">{{ results|tojson }}</textarea>
       <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
         Save Session Output (JSON)
+      </button>
+    </form>
+    <form method="post" action="/save_md" id="save_md">
+      <textarea name="results_json" class="hidden">{{ results|tojson }}</textarea>
+      <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
+        Save Session Output (MD)
       </button>
     </form>
     <form method="post" action="/analysis" id="analysis_form">

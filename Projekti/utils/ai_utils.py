@@ -63,12 +63,10 @@ def ask_analysis(prompt, max_tokens=400):
        print(f"Error generating analysis: {e}")
        return None
     
-def conclusive_analysis(all_results, max_tokens=1000):
+def conclusive_analysis(prompt_text, max_tokens=1000):
     '''
     Ask model conclusive analysis of command outputs
     '''
-    # Build a single string; Responses API does not accept a list[str] for `input`
-    prompt_text = "\n\n".join(str(result.get('stdout', '')) for result in all_results)
     try:
       resp = client.responses.create(
             model="gpt-4.1-mini",

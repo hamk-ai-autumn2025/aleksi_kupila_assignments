@@ -1,4 +1,4 @@
-import shlex
+import shlex, json
 from flask import Flask, request, render_template,  session, jsonify
 from flask_session import Session
 from utils.ai_utils import ask_model, ask_analysis, conclusive_analysis
@@ -111,8 +111,12 @@ def run():
 def get_conclusive_analysis():
     try:
         all_results = load_results(TEMP_FILE)
-        ai_analysis = conclusive_analysis(all_results)
-        save_analysis(TEMP_FILE, ai_analysis)
+        # Extract command outputs from the results
+        prompt_text = "\n\n".join(str(result.get('stdout', '')) for result in all_results)
+        # Extract commands from the results
+        commands = "\n".join(str(result.get('command', '')) for result in all_results)
+        ai_analysis = conclusive_analysis(prompt_text)
+        save_analysis(TEMP_FILE, commands, ai_analysis)
         return render_partial('answer.html', suggestion = session.command_suggestions, results = all_results, success = "Conclusive analysis generated!")
     
     except Exception as e:
@@ -121,8 +125,8 @@ def get_conclusive_analysis():
 
 
 # --- When user clicks "Save session (JSON)" button
-@app.route('/save', methods=['POST'])
-def save_output():
+@app.route('/save_json', methods=['POST'])
+def save_json():
     all_results = load_results(TEMP_FILE)
     write_json(all_results)
     return render_partial('answer.html', suggestion = session.command_suggestions, results = all_results, success="Output saved!")

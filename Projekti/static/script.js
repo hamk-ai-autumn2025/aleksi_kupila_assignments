@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
     e_spinner = document.getElementById('execute_spinner');
     a_spinner = document.getElementById('analysis_spinner');
     const form = e.target;
-    if (!['suggest_form', 'execute_form', 'analysis_form', 'save_form'].includes(form.id)) return;
+    if (!['suggest_form', 'execute_form', 'analysis_form', 'save_json', 'save_md'].includes(form.id)) return;
 
     e.preventDefault();
     const formData = new FormData(form)
