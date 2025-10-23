@@ -50,6 +50,7 @@ def valid_command(command):
         "nikto": {"-h", "-p", "-ssl", "-nossl", "-tls", "-timeout", "-nointeractive", "-Display", "-Plugins", "-url"}
     }
     try:
+        print(f"Validating command: {command}")
         args = shlex.split(command)
         tool = args[0]
         # Check if suggested tool is allowed
@@ -68,6 +69,13 @@ def valid_command(command):
         return False, "Command contains forbidden characters"
 
     # Check if target machine is an allowed target
-    if not any(t in command for t in ALLOWED_TARGETS):
-        return False, "Command target not allowed; must target local test containers"
-    return True, ""
+    for target in ALLOWED_TARGETS:
+        for argument in args:
+            if argument == target:
+                return True, ""
+    return False, "Command target not allowed; must target local test containers"
+
+    # Old insecure version
+    #if not any(t in command for t in ALLOWED_TARGETS):
+        #return False, "Command target not allowed; must target local test containers"
+    #return True, ""

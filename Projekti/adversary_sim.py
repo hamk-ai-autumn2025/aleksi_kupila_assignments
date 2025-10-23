@@ -1,4 +1,4 @@
-import os, json
+import shlex
 from flask import Flask, request, render_template,  session, jsonify
 from flask_session import Session
 from utils.openai_apis import ask_model, ask_analysis, conclusive_analysis
@@ -52,24 +52,53 @@ def suggest():
     return render_partial('answer.html', suggestion = None, results = all_results, error="Please enter instructions above")
 
 def validate_cmd():
-    print("Reached validation function!")
+    print("Validating command...")
     return None
 
 def remove_cmd():
-    print("Reached command removal function!")
+    print("Validating command...")
     return None
+
+def update_command(index, cmd):
+    suggestions = session.command_suggestions
+    #print(suggestions)
+    if index is not None and cmd is not None:
+        try:
+            index = int(index)
+            if 0 <= index < len(suggestions):
+
+                print(f"Updating command at index {index} to '{cmd}'")
+                args = shlex.split(cmd)
+                tool = args[0]
+                print(f'Tool: {tool}, command: {cmd}')
+                suggestions[index-1] = {'tool':tool,'command':cmd}
+                session.command_suggestions = suggestions
+                print("Succesfully updated session cache!\n")
+                #print(session.command_suggestions)
+
+        except (ValueError, IndexError) as e:
+            # Handle cases where index is invalid
+            print(f"Error updating command: {e}")
+
 # --- When user clicks "Execute selected command" or "Edit selected command" button ---
 @app.route('/run', methods=['POST'])
 def run():
     action = request.form.get('action')
+    #print(request.form)
+    # Get command index
+    command_index = request.form.get('cmd_index')
+    # Get command tied to the index
+    command = request.form[f"approved_cmd_{command_index}"]
+
+    # Handle validate and remove buttons
     if action == 'validate':
         validate_cmd()
     if action == 'remove':
         remove_cmd()
 
-    command = request.form['approved_cmd']
+    print(f"User tried executing command {command} at index {command_index}\n")
+
     all_results = load_results(TEMP_FILE)
-    analysis = get_analysis(TEMP_FILE)
 
     if command:
         ok, reason = valid_command(command)
@@ -84,6 +113,8 @@ def run():
         command_output = (run_command(EXECUTOR_CONTAINER, command))
         prompt_analysis = ask_analysis(command_output.stdout)
         session.executed_commands.append(command)
+        # Update session cache
+        update_command(command_index, command)
 
         if command_output and prompt_analysis:
             save_result(TEMP_FILE, command, command_output.stdout, command_output.stderr, prompt_analysis)

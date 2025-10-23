@@ -1,3 +1,21 @@
+function toggleEdit(index) {
+    const input = document.getElementById('cmd_input_' + index);
+    if (input.readOnly) {
+      input.readOnly = false;
+      input.focus();
+      input.select();
+    } else {
+      input.readOnly = true;
+      //radio.value = input.value;
+    }
+    }
+
+function save_edits(index){
+  const input = document.getElementById('cmd-input-' + index);
+  const radio = document.getElementById('cmd' + index);
+  //radio.value = input.value;
+  
+}
 document.addEventListener('DOMContentLoaded', () => {
   
     const suggest_form = document.getElementById('suggest_form');
@@ -19,6 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
         e_spinner.style.display = 'block';
       }
       formData.append('action', action);
+
     }
     if (form.id == "analysis_form"){
         a_spinner.style.display = 'block';
