@@ -3,7 +3,7 @@ from flask import Flask, request, render_template,  session, jsonify
 from flask_session import Session
 from utils.ai_utils import ask_model, ask_analysis, conclusive_analysis
 from utils.file_utils import extract_json, validateStructure
-from utils.cmd_utils import valid_command, remove_cmd, run_command
+from utils.cmd_utils import valid_command, remove_cmd, run_command, update_command
 from utils.file_utils import write_json, save_result, load_results, save_analysis, clean_temp, get_analysis
 
 EXECUTOR_CONTAINER = "command_executor"
@@ -56,26 +56,6 @@ def validate_cmd():
     print("Validating command...")
     return None
 
-def update_command(index, cmd):
-    suggestions = session.command_suggestions
-    #print(suggestions)
-    if index is not None and cmd is not None:
-        try:
-            index = int(index)
-            if 0 <= index < len(suggestions):
-
-                print(f"Updating command at index {index} to '{cmd}'")
-                args = shlex.split(cmd)
-                tool = args[0]
-                print(f'Tool: {tool}, command: {cmd}')
-                suggestions[index-1] = {'tool':tool,'command':cmd}
-                session.command_suggestions = suggestions
-                print("Succesfully updated session cache!\n")
-                #print(session.command_suggestions)
-
-        except (ValueError, IndexError) as e:
-            # Handle cases where index is invalid
-            print(f"Error updating command: {e}")
 
 # --- When user clicks "Execute selected command" or "Edit selected command" button ---
 @app.route('/run', methods=['POST'])
@@ -111,7 +91,9 @@ def run():
         prompt_analysis = ask_analysis(command_output.stdout)
         session.executed_commands.append(command)
         # Update session cache
-        update_command(command_index, command)
+        suggestions = update_command(session.command_suggestions, command_index, command)
+        if suggestions:
+            session.command_suggestions = suggestions
 
         if command_output and prompt_analysis:
             save_result(TEMP_FILE, command, command_output.stdout, command_output.stderr, prompt_analysis)

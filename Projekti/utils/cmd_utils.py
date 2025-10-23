@@ -36,6 +36,7 @@ def valid_command(command):
     for target in ALLOWED_TARGETS:
         for argument in args:
             if argument == target:
+                print("Valid command!\n")
                 return True, ""
     return False, "Command target not allowed; must target local test containers"
 
@@ -64,6 +65,29 @@ def run_command(EXECUTOR_CONTAINER, command: list[str]):
         print(f"Error running command: {e}")
         return None
     
+def update_command(suggestions, index, cmd):
+
+    #print(suggestions)
+    if index is not None and cmd is not None:
+        try:
+            index = int(index)
+            if 0 <= index < len(suggestions):
+
+                print(f"Updating command at index {index} to '{cmd}'")
+                args = shlex.split(cmd)
+                tool = args[0]
+                print(f'Tool: {tool}, command: {cmd}')
+                suggestions[index-1] = {'tool':tool,'command':cmd}
+
+                print("Succesfully updated session cache!\n")
+                return suggestions
+                #print(session.command_suggestions)
+
+        except (ValueError, IndexError) as e:
+            # Handle cases where index is invalid
+            print(f"Error updating command: {e}")
+            return None
+
 def remove_cmd():
     print("Validating command...")
     return None
