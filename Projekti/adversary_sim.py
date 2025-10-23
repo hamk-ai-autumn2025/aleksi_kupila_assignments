@@ -2,8 +2,9 @@ import shlex
 from flask import Flask, request, render_template,  session, jsonify
 from flask_session import Session
 from utils.openai_apis import ask_model, ask_analysis, conclusive_analysis
-from utils.checks import extract_json, validateStructure, valid_command
-from utils.file_utils import write_json, save_result, load_results, run_command, save_analysis, clean_temp, get_analysis
+from utils.file_utils import extract_json, validateStructure
+from utils.cmd_utils import valid_command, remove_cmd, run_command
+from utils.file_utils import write_json, save_result, load_results, save_analysis, clean_temp, get_analysis
 
 EXECUTOR_CONTAINER = "command_executor"
 TEMP_FILE = "TEMP.json"
@@ -52,10 +53,6 @@ def suggest():
     return render_partial('answer.html', suggestion = None, results = all_results, error="Please enter instructions above")
 
 def validate_cmd():
-    print("Validating command...")
-    return None
-
-def remove_cmd():
     print("Validating command...")
     return None
 

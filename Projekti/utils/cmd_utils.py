@@ -1,42 +1,6 @@
-import json, shlex, re
+import shlex, subprocess
 
 ALLOWED_TOOLS = {"nmap", "nikto"}
-# --- Extract JSON file from AI output ---
-def extract_json(text):
-    '''
-    Extracts JSON from str input
-    '''
-    try:
-        return json.loads(text)
-    except Exception:
-        pass
-    # try to find first [...] block
-    m = re.search(r'(\[.*\])', text, re.S)
-    if m:
-        candidate = m.group(1)
-        # try json
-        try:
-            return json.loads(candidate)
-        except Exception:
-            pass
-    # give up
-    raise ValueError("Could not parse JSON from model output")
-
-# --- Validate JSON file structure ---
-def validateStructure(commands):
-    '''
-    Checks JSON file structure integrity
-    '''
-    if not isinstance(commands, list):
-        return False
-    
-    for cmd in commands:
-        if not isinstance(cmd, dict) or "command" not in cmd or "tool" not in cmd:
-            return False
-        if cmd.get("tool") not in ALLOWED_TOOLS:
-            return False
-    return True
-
 # --- Basic command safety check ---
 def valid_command(command):
     '''
@@ -79,3 +43,27 @@ def valid_command(command):
     #if not any(t in command for t in ALLOWED_TARGETS):
         #return False, "Command target not allowed; must target local test containers"
     #return True, ""
+
+# --- Runs command inside a docker container
+def run_command(EXECUTOR_CONTAINER, command: list[str]):
+     # Convert "nmap -sV dvwa" -> ["nmap", "-sV", "dvwa"]
+    args = shlex.split(command)
+
+    print(f'Running command: {command} in docker container projekti-executor')
+
+    try:
+        result = subprocess.run(
+            ["docker", "exec", EXECUTOR_CONTAINER] + args,
+            capture_output=True,
+            text=True
+        )
+        # print(result)
+        return result
+    
+    except Exception as e:
+        print(f"Error running command: {e}")
+        return None
+    
+def remove_cmd():
+    print("Validating command...")
+    return None
