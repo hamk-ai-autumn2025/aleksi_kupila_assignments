@@ -3,7 +3,7 @@ from flask import Flask, request, render_template,  session, jsonify
 from flask_session import Session
 from utils.ai_utils import ask_model, ask_analysis, conclusive_analysis
 from utils.file_utils import extract_json, validateStructure
-from utils.cmd_utils import valid_command, remove_cmd, run_command, update_command
+from utils.cmd_utils import remove_cmd, run_command, update_command, validate_cmd
 from utils.file_utils import write_json, save_result, load_results, save_analysis, clean_temp, get_analysis, write_md
 
 EXECUTOR_CONTAINER = "command_executor"
@@ -52,10 +52,6 @@ def suggest():
             return render_partial("answer.html", suggestion=None, results = all_results, error=f"Failed to parse AI JSON: {e}\nAI raw: {command_suggestions}")
     return render_partial('answer.html', suggestion = None, results = all_results, error="Please enter instructions above")
 
-def validate_cmd():
-    print("Validating command...")
-    return None
-
 
 # --- When user clicks "Execute selected command" or "Edit selected command" button ---
 @app.route('/run', methods=['POST'])
@@ -67,43 +63,34 @@ def run():
     # Get command tied to the index
     command = request.form[f"approved_cmd_{command_index}"]
 
-    # Handle validate and remove buttons
-    if action == 'validate':
-        validate_cmd()
+    # Handle remove button
     if action == 'remove':
         remove_cmd()
 
-    print(f"User tried executing command {command} at index {command_index}\n")
+    print(f"Entered command {command} at index {command_index}")
 
     all_results = load_results(TEMP_FILE)
+    valid, reason = validate_cmd(command, session.executed_commands)
+    if not valid:
+        return render_partial("answer.html", suggestion = session.command_suggestions, results = all_results, error=reason)
+    # At this point, command is recognized as VALID by basic safety checks
+    if action == 'validate':
+        return render_partial("answer.html", suggestion = session.command_suggestions, results = all_results, success="Valid command!")
 
-    if command:
-        ok, reason = valid_command(command)
+    command_output = (run_command(EXECUTOR_CONTAINER, command))
+    prompt_analysis = ask_analysis(command_output.stdout)
+    session.executed_commands.append(command)
+    # Update session cache
+    suggestions = update_command(session.command_suggestions, command_index, command)
+    if suggestions:
+        session.command_suggestions = suggestions
 
-        if command in session.executed_commands:
-            return render_partial("answer.html", suggestion = session.command_suggestions, results = all_results, error=f"Command already executed in this session!:")
-        
-        if not ok:
-            return render_partial("answer.html", suggestion = session.command_suggestions, results = all_results, error=f"Command rejected: {reason}")
-        
-        # At this point, command is recognized as VALID by basic safety checks
-        command_output = (run_command(EXECUTOR_CONTAINER, command))
-        prompt_analysis = ask_analysis(command_output.stdout)
-        session.executed_commands.append(command)
-        # Update session cache
-        suggestions = update_command(session.command_suggestions, command_index, command)
-        if suggestions:
-            session.command_suggestions = suggestions
-
-        if command_output and prompt_analysis:
-            save_result(TEMP_FILE, command, command_output.stdout, command_output.stderr, prompt_analysis)
-            all_results = load_results(TEMP_FILE)
-            return render_partial('answer.html', suggestion = session.command_suggestions, results = all_results, success=f"Executed {command}")
-        else: 
-            return render_partial('answer.html', suggestion = session.command_suggestions, results = all_results, error="Generating analysis failed")
-
-    else:
-        return render_partial('answer.html', suggestion = session.command_suggestions, results = all_results, error="No command selected to run")
+    if command_output and prompt_analysis:
+        save_result(TEMP_FILE, command, command_output.stdout, command_output.stderr, prompt_analysis)
+        all_results = load_results(TEMP_FILE)
+        return render_partial('answer.html', suggestion = session.command_suggestions, results = all_results, success=f"Executed {command}")
+    else: 
+        return render_partial('answer.html', suggestion = session.command_suggestions, results = all_results, error="Generating analysis failed")
 
 
 # ... When user clicks "Get conclusive analysis" button

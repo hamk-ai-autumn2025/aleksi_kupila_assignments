@@ -2,7 +2,7 @@ import shlex, subprocess
 
 ALLOWED_TOOLS = {"nmap", "nikto"}
 # --- Basic command safety check ---
-def valid_command(command):
+def allowed_command(command):
     '''
     Checks if a command is "safe" to run in a local Docker container
     '''
@@ -28,7 +28,7 @@ def valid_command(command):
         if arg.startswith("-"): # It's a flag
             if arg not in ALLOWED_FLAGS.get(tool, set()):
                 return False, f"Flag '{arg}' is not allowed for {tool}."
-    # If command contains dangerous characters
+    # If command contains forbidden characters
     if any(ch in command for ch in FORBIDDEN_CHARS):
         return False, "Command contains forbidden characters"
 
@@ -36,7 +36,7 @@ def valid_command(command):
     for target in ALLOWED_TARGETS:
         for argument in args:
             if argument == target:
-                print("Valid command!\n")
+                print("Valid command!\n\n")
                 return True, ""
     return False, "Command target not allowed; must target local test containers"
 
@@ -45,6 +45,22 @@ def valid_command(command):
         #return False, "Command target not allowed; must target local test containers"
     #return True, ""
 
+def validate_cmd(command, executed_commands):
+    '''
+    Function to check if a command is valid and is not already executed in the current session
+    '''
+    print("Validating command...")
+    if command:
+        ok, reason = allowed_command(command)
+
+        if command in executed_commands:
+            return False, "Command already executed in this session!"
+        if not ok:
+            return False, f"Command rejected: {reason}"
+        return True, ""
+    else:
+        return False, "No command selected to run"
+    
 # --- Runs command inside a docker container
 def run_command(EXECUTOR_CONTAINER, command: list[str]):
      # Convert "nmap -sV dvwa" -> ["nmap", "-sV", "dvwa"]
