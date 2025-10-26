@@ -49,7 +49,6 @@ def validate_cmd(command, executed_commands):
     '''
     Function to check if a command is valid and is not already executed in the current session
     '''
-    print("Validating command...")
     if command:
         ok, reason = allowed_command(command)
 
@@ -82,7 +81,9 @@ def run_command(EXECUTOR_CONTAINER, command: list[str]):
         return None
     
 def update_command(suggestions, index, cmd):
-
+    '''
+    Updates command suggestions in session cache
+    '''
     #print(suggestions)
     if index is not None and cmd is not None:
         try:
@@ -103,7 +104,20 @@ def update_command(suggestions, index, cmd):
             # Handle cases where index is invalid
             print(f"Error updating command: {e}")
             return None
-
-def remove_cmd():
-    print("Validating command...")
     return None
+       
+def remove_cmd(suggestions, index, cmd):
+     '''
+     Removes command from session cache
+     '''
+     if index is not None and cmd is not None:
+        try:
+            print(f"Removing command {cmd} from suggestions...")
+            index = int(index)
+            del suggestions[index-1]
+            print("Succesfully removed command!\n")
+            return True, suggestions
+        except (ValueError, IndexError) as e:
+            # Handle cases where index is invalid
+            print(f"Error removing command: {e}\n")
+            return None, suggestions

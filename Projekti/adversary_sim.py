@@ -62,14 +62,18 @@ def run():
     command_index = request.form.get('cmd_index')
     # Get command tied to the index
     command = request.form[f"approved_cmd_{command_index}"]
+    all_results = load_results(TEMP_FILE)
 
     # Handle remove button
-    if action == 'remove':
-        remove_cmd()
+    if action == 'remove_suggestion':
+        ok, cmd_suggestions = remove_cmd(session.command_suggestions,command_index,command)
+        if ok:
+            return render_partial("answer.html", suggestion = cmd_suggestions, results = all_results, success="Command suggestion removed!")
+        else:
+            return render_partial("answer.html", suggestion = cmd_suggestions, results = all_results, error="Command suggestion removal failed!")
 
     print(f"Entered command {command} at index {command_index}")
 
-    all_results = load_results(TEMP_FILE)
     valid, reason = validate_cmd(command, session.executed_commands)
     if not valid:
         return render_partial("answer.html", suggestion = session.command_suggestions, results = all_results, error=reason)
