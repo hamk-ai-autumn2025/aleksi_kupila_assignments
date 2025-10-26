@@ -28,6 +28,7 @@ __pycache__/
 *.docx
 *.xlsx
 *.csv
+*.md
 
 # Audio
 

@@ -1,4 +1,5 @@
 import os, time, uuid, json, re, ast
+from mdutils import MdUtils
 
 ALLOWED_TOOLS = {"nmap", "nikto"}
 
@@ -174,3 +175,33 @@ def load_results(TEMP_FILE):
         return []
     with open(TEMP_FILE) as f:
         return json.load(f)
+    
+def write_md(results):
+    filename = find_new_file_name("tool_output.md")
+    mdFile = MdUtils(file_name=filename,title='Tool output')
+
+    for result in results:
+        #print(result)
+        if "final_analysis" in result:
+            mdFile.new_header(level=1, title='Analysis results')
+            mdFile.new_paragraph(f'Based on commands: {result["based_on"]}', bold_italics_code="b")
+            mdFile.new_paragraph(f'Timestamp: {result["timestamp"]}',bold_italics_code="b")
+            mdFile.new_paragraph(f'ID: {result["id"]}',bold_italics_code="b")
+            mdFile.new_header(level=2, title=f'Analysis output:')
+            mdFile.new_paragraph(result["final_analysis"])
+        else:
+            mdFile.new_header(level=1, title='Command results')
+            mdFile.new_paragraph(f'Command: {result["command"]}', bold_italics_code="b")
+            mdFile.new_paragraph(f'Timestamp: {result["timestamp"]}',bold_italics_code="b")
+            mdFile.new_paragraph(f'ID: {result["id"]}',bold_italics_code="b")
+            if "stderr" in result:
+                mdFile.new_paragraph(f'Success!',bold_italics_code="b")
+            else:
+                mdFile.new_paragraph(f'{result["stderr"]}', bold_italics_code="b")
+            mdFile.new_header(level=2, title=f'Command output:')
+            mdFile.new_paragraph(result["stdout"])
+            mdFile.new_header(level=2, title=f'AI analysis:')
+            mdFile.new_paragraph(result["prompt_analysis"])
+
+    mdFile.create_md_file()
+    return filename

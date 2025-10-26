@@ -4,7 +4,7 @@ from flask_session import Session
 from utils.ai_utils import ask_model, ask_analysis, conclusive_analysis
 from utils.file_utils import extract_json, validateStructure
 from utils.cmd_utils import valid_command, remove_cmd, run_command, update_command
-from utils.file_utils import write_json, save_result, load_results, save_analysis, clean_temp, get_analysis
+from utils.file_utils import write_json, save_result, load_results, save_analysis, clean_temp, get_analysis, write_md
 
 EXECUTOR_CONTAINER = "command_executor"
 TEMP_FILE = "TEMP.json"
@@ -129,6 +129,13 @@ def get_conclusive_analysis():
 def save_json():
     all_results = load_results(TEMP_FILE)
     write_json(all_results)
+    return render_partial('answer.html', suggestion = session.command_suggestions, results = all_results, success="Output saved!")
+
+# --- When user clicks "Save session (MD)" button
+@app.route('/save_md', methods=['POST'])
+def save_md():
+    all_results = load_results(TEMP_FILE)
+    write_md(all_results)
     return render_partial('answer.html', suggestion = session.command_suggestions, results = all_results, success="Output saved!")
 
 # --- Resets page, temp file and session storage ---
