@@ -12,12 +12,12 @@ and analyzes the results using AI models.
 
 ## Features
 
-- Generating command suggestions from natural language instructions
-- Validating and executing commands in a secure container environment
-- Analyzing command outputs using AI
-- Generating conclusive security analysis reports
-- Saving session data in JSON or Markdown format
-- Written in Python, Flask and Jinja
+- Generating command suggestions from natural language instructions.
+- Validating and executing commands in a secure container environment.
+- Analyzing command outputs using AI.
+- Generating conclusive security analysis reports.
+- Saving session data in JSON or Markdown format.
+- Written in Python, Flask and Jinja.
 
 ---
 
@@ -35,7 +35,7 @@ and analyzes the results using AI models.
 ## Prerequisites
 
 1. **Software**
-    Docker and Docker compose must be installed and running
+    Docker and Docker compose must be installed and running.
     You can check this by running:
     ```bash
     docker ps
@@ -56,7 +56,7 @@ and analyzes the results using AI models.
 ## Configuration
 
 - This application requires a valid OpenAI API key.
-- The key can be either in your shell configuration (e.g. bash) or in an environmental file
+- The key can be either in your shell configuration (e.g. bash) or in an environmental file.
 
 You can create the environmental file as follows:
 
@@ -68,7 +68,7 @@ You can create the environmental file as follows:
     ```bash
     AI_API_KEY=your_key_here
     ```
-Note that running the program by 'flask run' also needs environmental variable FLASK_APP configured (included in .env.example)
+Note that running the program by 'flask run' also needs environmental variable FLASK_APP configured (included in .env.example).
 
 ---
 
@@ -96,12 +96,12 @@ Note that running the program by 'flask run' also needs environmental variable F
 
 ## Usage
 
-- Visit 'localhost:5000'
-- Enter an instruction for AI in natural language, for example "Check open ports of DVWA"
+- Visit `localhost:5000`
+- Enter an instruction for AI in natural language, for example `Check open ports of DVWA`
 - Validate and execute command. You can also edit, remove or just validate commands at this stage.
 - You can view the scan results and analysis in the dropdown menu.
 - You can generate a final analysis based on one or multiple command outputs.
-- You can also save the session data in either .json or .md format.
+- You can also save the session data in either `.json` or `.md` format.
 - The page can be reset from the button in top right.
 
 ---
