@@ -6,8 +6,26 @@ security scanning commands and analyzing their outputs.
 """
 
 from openai import OpenAI
+from dotenv import load_dotenv
+import os
 
-client = OpenAI()
+load_dotenv()
+
+# Try fetching from .env file first
+API_KEY = os.environ.get("OPENAI_API_KEY")
+
+# If not found, try from shell environment
+if not API_KEY or API_KEY == "your_key_here":
+  API_KEY = os.environ.get("OPENAI_API_KEY")
+
+# If still not found, raise error
+if not API_KEY:
+  raise RuntimeError(
+    "Missing API key. Please set AI_API_KEY "
+    "in your .env file or OPENAI_API_KEY in your shell environment."
+  )
+
+client = OpenAI(api_key=API_KEY)
 
 SUGGEST_PROMPT = """
 You are a cybersecurity assistant. Translate this user request into a safe command that uses only nmap or nikto against a Docker target container address "dvwa", "localhost", 172.20.0.0 or 127.0.0.1.

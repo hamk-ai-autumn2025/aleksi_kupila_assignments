@@ -1,4 +1,5 @@
 # Flask
+
 flask_session/
 
 # Python
@@ -13,17 +14,13 @@ __pycache__/
 
 *.webp
 *.png
-!example.png
-!logo.png
 *.jpg
 *.jpeg
 
 # Document files
+
 *.txt
-!requirements.txt
 *.json
-!sdxl_turbo_workflow.json
-!sdxlturbo_example.json
 *.pdf
 *.docx
 *.xlsx
@@ -38,3 +35,12 @@ __pycache__/
 # Other
 
 Lidl_Tarkov
+
+# Exceptions
+
+!sdxl_turbo_workflow.json
+!sdxlturbo_example.json
+!requirements.txt
+!example.png
+!logo.png
+!README.md
