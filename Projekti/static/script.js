@@ -54,10 +54,19 @@ document.addEventListener('DOMContentLoaded', () => {
     s_spinner  = document.getElementById('suggest_spinner');
     e_spinner = document.getElementById('execute_spinner');
     a_spinner = document.getElementById('analysis_spinner');
+    
+    // Return if any spinner is already visible
+    if (s_spinner?.style.display === 'block' || 
+        e_spinner?.style.display === 'block' || 
+        a_spinner?.style.display === 'block') {
+      e.preventDefault();
+      return;
+    }
+    
     const form = e.target;
     if (!['suggest_form', 'execute_form', 'analysis_form', 'save_json', 'save_md'].includes(form.id)) return;
-
     e.preventDefault();
+    
     const formData = new FormData(form)
     display_spinner(form, formData, e, s_spinner, e_spinner, a_spinner)
 
