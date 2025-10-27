@@ -265,7 +265,9 @@ def load_results(temp_file):
     if not os.path.exists(temp_file):
         return []
     with open(temp_file) as f:
-        return json.load(f)
+        all_results = json.load(f)
+        command_results = [result for result in all_results if "command" in result]
+        return command_results
 
 
 def write_md(results):
