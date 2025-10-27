@@ -83,9 +83,9 @@ Note that running the program by 'flask run' also needs environmental variable F
     ```bash
     pip install -r requirements.txt
     ```
-3. **Start docker environment (new terminal window)**
+3. **Start docker environment**
     ```bash
-    docker compose up
+    docker compose up -d --build
     ```
 4. **Start the application**
     ```bash
