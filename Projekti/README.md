@@ -4,7 +4,7 @@
 
 # AI-powered vulnerability scanner
 
-An AI-powered cybersecurity adversary simulator that suggests commands based on
+An AI-powered cybersecurity vulnerability scanner/adversary simulator that suggests commands based on
 natural language user input, executes them inside a sandboxed Docker container,
 and analyzes the results using AI models.
 
