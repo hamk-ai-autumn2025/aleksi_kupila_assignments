@@ -19,6 +19,7 @@ ALLOWED_TOOLS: Set[str] = {"nmap", "nikto"}
 # The 192.* addresses are the developer's PC and router.
 ALLOWED_TARGETS: List[str] = [
     "dvwa",
+    "http://dvwa:80",
     "192.168.88.1",
     "192.168.88.254",
     "172.20.0.0",

@@ -1,4 +1,13 @@
 services:
+  db:
+      image: mysql:5.7
+      environment:
+        MYSQL_ROOT_PASSWORD: root
+        MYSQL_DATABASE: dvwa
+      healthcheck:
+        test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+        interval: 5s
+        retries: 10
   dvwa:
     image: vulnerables/web-dvwa
     ports:
@@ -10,6 +19,9 @@ services:
       MYSQL_DATABASE: dvwa
       MYSQL_ROOT_PASSWORD: root
     restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
     networks:
       - adversary_sim_network
 
