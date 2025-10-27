@@ -107,7 +107,7 @@ def validateStructure(commands):
     return True
 
 
-def write_json(output):
+def write_json(output, output_dir):
     """
     Write session output to a pretty-printed JSON file.
     
@@ -142,7 +142,10 @@ def write_json(output):
     }
     
     filename = find_new_file_name("tool_output.json")
-    with open(filename, "w", encoding="utf-8") as f:
+    os.makedirs(output_dir, exist_ok=True)
+    file_path = os.path.join(output_dir, filename)
+    
+    with open(file_path, "w", encoding="utf-8") as f:
         json.dump(output_json, f, indent=4, ensure_ascii=False,
                   sort_keys=False, default=str)
         f.write("\n")
@@ -270,7 +273,7 @@ def load_results(temp_file):
         return command_results
 
 
-def write_md(results):
+def write_md(results, output_dir):
     """
     Generate a Markdown report from session results.
     
@@ -287,7 +290,9 @@ def write_md(results):
         The output Markdown filename.
     """
     filename = find_new_file_name("tool_output.md")
-    md_file = MdUtils(file_name=filename, title='Tool output')
+    os.makedirs(output_dir, exist_ok=True)
+    file_path = os.path.join(output_dir, filename)
+    md_file = MdUtils(file_path, title='Tool output')
 
     for result in results:
         if "final_analysis" in result:

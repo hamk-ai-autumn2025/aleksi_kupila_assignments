@@ -36,6 +36,7 @@ from utils.cmd_utils import (
 
 EXECUTOR_CONTAINER = "command_executor"
 TEMP_FILE = "TEMP.json"
+OUTPUT_DIR = "output"
 
 app = Flask(__name__)
 
@@ -203,7 +204,7 @@ def run():
         command_index,
         command
     )
-    
+
     if action == 'validate':
         return render_partial(
             "answer.html",
@@ -292,7 +293,7 @@ def save_json():
         flask.Response: Rendered template with success message
     """
     all_results = load_results(TEMP_FILE)
-    write_json(all_results)
+    write_json(all_results, OUTPUT_DIR)
     return render_partial(
         'answer.html',
         suggestion=session.command_suggestions,
@@ -310,7 +311,7 @@ def save_md():
         flask.Response: Rendered template with success message
     """
     all_results = load_results(TEMP_FILE)
-    write_md(all_results)
+    write_md(all_results, OUTPUT_DIR)
     return render_partial(
         'answer.html',
         suggestion=session.command_suggestions,
