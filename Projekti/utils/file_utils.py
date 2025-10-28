@@ -135,13 +135,14 @@ def write_json(output, output_dir):
     else:
         data = output
 
+    timestamp = time.time()
     output_json = {
         "session_id": str(uuid.uuid4()),
-        "timestamp": time.time(),
+        "timestamp": timestamp,
         "entries": data
     }
     
-    filename = find_new_file_name("tool_output.json")
+    filename = f"tool_output_{timestamp}.json"
     os.makedirs(output_dir, exist_ok=True)
     file_path = os.path.join(output_dir, filename)
     
@@ -194,21 +195,23 @@ def save_result(temp_file, command, stdout, stderr, prompt_analysis):
         print(f"Error: saving output to a temporary file failed! {e}")
 
 
-def get_analysis(temp_file):
+def get_entry(temp_file, entry_key):
     """
-    Fetch the final analysis from the temporary file.
+    Fetch entry/entries that have specified entry_key
     
     Args:
         temp_file: Path to the temporary JSON file.
+        entry_key: Dict key that the entry should have
         
     Returns:
-        The final analysis text if found, None otherwise.
+        List of entries with the entry_key if any exist, otherwise None
     """
-    all_results = load_results(temp_file)
-    for entry in all_results:
-        if "final_analysis" in entry:
-            return entry["final_analysis"]
-    return None
+    if not os.path.exists(temp_file):
+        return None
+    with open(temp_file) as f:
+        all_results = json.load(f)
+        results = [result for result in all_results if entry_key in result]
+        return results
 
 
 def save_analysis(temp_file, commands, final_analysis_text):
@@ -255,24 +258,6 @@ def clean_temp(temp_file):
             json.dump([], f)
 
 
-def load_results(temp_file):
-    """
-    Load all results from the temporary JSON file.
-    
-    Args:
-        temp_file: Path to the temporary JSON file.
-        
-    Returns:
-        List of result entries, or empty list if file doesn't exist.
-    """
-    if not os.path.exists(temp_file):
-        return []
-    with open(temp_file) as f:
-        all_results = json.load(f)
-        command_results = [result for result in all_results if "command" in result]
-        return command_results
-
-
 def write_md(results, output_dir):
     """
     Generate a Markdown report from session results.
@@ -289,11 +274,22 @@ def write_md(results, output_dir):
     Returns:
         The output Markdown filename.
     """
-    filename = find_new_file_name("tool_output.md")
+    timestamp = time.time()
+    filename = f"tool_output_{timestamp}"
+    print(f"Saving tool output on file '{filename}'...")
     os.makedirs(output_dir, exist_ok=True)
     file_path = os.path.join(output_dir, filename)
-    md_file = MdUtils(file_path, title='Tool output')
+    md_file = MdUtils(file_path)
 
+    md_file.new_header(level=1, title="Tool output")
+    md_file.new_paragraph(
+        f"session_id: {str(uuid.uuid4())}",
+        bold_italics_code="b"
+    )
+    md_file.new_paragraph(
+        f"Timestamp: {timestamp}",
+        bold_italics_code="b"
+    )
     for result in results:
         if "final_analysis" in result:
             md_file.new_header(level=1, title='Analysis results')
@@ -338,4 +334,5 @@ def write_md(results, output_dir):
             md_file.new_paragraph(result["prompt_analysis"])
 
     md_file.create_md_file()
+    print("Tool output saved!\n")
     return filename

@@ -49,7 +49,6 @@ CONCLUDE_PROMPT = """
 Analyze the outputs of these commands and provide a conclusive summary of the target's security posture. 
 Focus on key vulnerabilities, patterns, and recommendations. 
 Do not repeat the outputs; summarize them concisely.
-Start by mentioning which commands the analysis is based on.
 """
 
 

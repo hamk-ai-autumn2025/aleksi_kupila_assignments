@@ -21,10 +21,9 @@ from utils.file_utils import (
     validateStructure,
     write_json,
     save_result,
-    load_results,
     save_analysis,
     clean_temp,
-    get_analysis,
+    get_entry,
     write_md
 )
 from utils.cmd_utils import (
@@ -65,8 +64,11 @@ def render_partial(template_name, **context):
     Returns:
         flask.Response: JSON response containing the rendered HTML
     """
-    analysis = get_analysis(TEMP_FILE)
-    html = render_template(template_name, **context, analysis=analysis)
+    analysis = get_entry(TEMP_FILE, "final_analysis")
+    latest_analysis = None
+    if analysis:
+        latest_analysis = analysis[-1]["final_analysis"]  # Latest final analysis
+    html = render_template(template_name, **context, analysis=latest_analysis)
     
     return jsonify({'html': html})
 
@@ -83,7 +85,7 @@ def suggest():
         flask.Response: Rendered template with command suggestions or error message
     """
     instruction = request.form["instruction"]
-    all_results = load_results(TEMP_FILE)
+    cmd_results = get_entry(TEMP_FILE, "command")
 
     if instruction:
         # Request LLM for a command
@@ -98,7 +100,7 @@ def suggest():
             return render_partial(
                 'answer.html',
                 suggestion=None,
-                results=all_results,
+                results=cmd_results,
                 error=error_msg
             )
         
@@ -110,7 +112,7 @@ def suggest():
                 return render_partial(
                     'answer.html',
                     suggestion=commands,
-                    results=all_results,
+                    results=cmd_results,
                     success="Commands generated!"
                 )
             else:
@@ -121,7 +123,7 @@ def suggest():
                 return render_partial(
                     'answer.html',
                     suggestion=None,
-                    results=all_results,
+                    results=cmd_results,
                     error=error_msg
                 )
         except Exception as e:
@@ -132,14 +134,14 @@ def suggest():
             return render_partial(
                 "answer.html",
                 suggestion=None,
-                results=all_results,
+                results=cmd_results,
                 error=error_msg
             )
     
     return render_partial(
         'answer.html',
         suggestion=None,
-        results=all_results,
+        results=cmd_results,
         error="Please enter instructions above"
     )
 
@@ -161,7 +163,7 @@ def run():
     action = request.form.get('action')
     command_index = request.form.get('cmd_index')
     command = request.form[f"approved_cmd_{command_index}"]
-    all_results = load_results(TEMP_FILE)
+    cmd_results = get_entry(TEMP_FILE, "command")
 
     # Handle remove button
     if action == 'remove_suggestion':
@@ -174,14 +176,14 @@ def run():
             return render_partial(
                 "answer.html",
                 suggestion=cmd_suggestions,
-                results=all_results,
+                results=cmd_results,
                 success="Command suggestion removed!"
             )
         else:
             return render_partial(
                 "answer.html",
                 suggestion=cmd_suggestions,
-                results=all_results,
+                results=cmd_results,
                 error="Command suggestion removal failed!"
             )
 
@@ -192,7 +194,7 @@ def run():
         return render_partial(
             "answer.html",
             suggestion=session.command_suggestions,
-            results=all_results,
+            results=cmd_results,
             error=reason
         )
     
@@ -209,7 +211,7 @@ def run():
         return render_partial(
             "answer.html",
             suggestion=session.command_suggestions,
-            results=all_results,
+            results=cmd_results,
             success="Valid command!"
         )
 
@@ -228,18 +230,18 @@ def run():
             command_output.stderr,
             prompt_analysis
         )
-        all_results = load_results(TEMP_FILE)
+        cmd_results = get_entry(TEMP_FILE, "command")
         return render_partial(
             'answer.html',
             suggestion=session.command_suggestions,
-            results=all_results,
+            results=cmd_results,
             success=f"Executed {command}"
         )
     else:
         return render_partial(
             'answer.html',
             suggestion=session.command_suggestions,
-            results=all_results,
+            results=cmd_results,
             error="Generating analysis failed"
         )
 
@@ -255,23 +257,23 @@ def get_conclusive_analysis():
     Returns:
         flask.Response: Rendered template with success or error message
     """
-    all_results = load_results(TEMP_FILE)
+    cmd_results = get_entry(TEMP_FILE, "command")
     
     try:
         # Extract command outputs from the results
         prompt_text = "\n\n".join(
-            str(result.get('stdout', '')) for result in all_results
+            str(result.get('stdout', '')) for result in cmd_results
         )
         # Extract commands from the results
         commands = "\n".join(
-            str(result.get('command', '')) for result in all_results
+            str(result.get('command', '')) for result in cmd_results
         )
         ai_analysis = conclusive_analysis(prompt_text)
         save_analysis(TEMP_FILE, commands, ai_analysis)
         return render_partial(
             'answer.html',
             suggestion=session.command_suggestions,
-            results=all_results,
+            results=cmd_results,
             success="Conclusive analysis generated!"
         )
     except Exception as e:
@@ -279,7 +281,7 @@ def get_conclusive_analysis():
         return render_partial(
             'answer.html',
             suggestion=session.command_suggestions,
-            results=all_results,
+            results=cmd_results,
             error="Failed to generate conclusive analysis!"
         )
 
@@ -292,12 +294,13 @@ def save_json():
     Returns:
         flask.Response: Rendered template with success message
     """
-    all_results = load_results(TEMP_FILE)
-    write_json(all_results, OUTPUT_DIR)
+    results = get_entry(TEMP_FILE, "id")
+    cmd_results = get_entry(TEMP_FILE, "command")
+    write_json(results, OUTPUT_DIR)
     return render_partial(
         'answer.html',
         suggestion=session.command_suggestions,
-        results=all_results,
+        results=cmd_results,
         success="Output saved!"
     )
 
@@ -310,12 +313,13 @@ def save_md():
     Returns:
         flask.Response: Rendered template with success message
     """
-    all_results = load_results(TEMP_FILE)
-    write_md(all_results, OUTPUT_DIR)
+    results = get_entry(TEMP_FILE, "id")
+    cmd_results = get_entry(TEMP_FILE, "command")
+    write_md(results, OUTPUT_DIR)
     return render_partial(
         'answer.html',
         suggestion=session.command_suggestions,
-        results=all_results,
+        results=cmd_results,
         success="Output saved!"
     )
 
