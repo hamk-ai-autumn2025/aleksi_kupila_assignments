@@ -138,6 +138,7 @@ def suggest():
                 error=error_msg
             )
     
+    print("Error: no instructions entered!\n")
     return render_partial(
         'answer.html',
         suggestion=None,

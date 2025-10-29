@@ -3,7 +3,10 @@ Utilities for validating and executing a restricted set of shell commands
 inside a Docker executor container.
 
 This module provides:
-- allowed_command: basic safety checks for commands and targets
+- is_valid_port: basic check for port range validity
+- get_nmap_parser: create a parser for the nmap command
+- get_nikto_parser: create a parser for the nikto command
+- safe_command: basic safety checks for commands and targets
 - validate_cmd: checks for duplicates and delegates to allowed_command
 - run_command: executes a validated command inside a Docker container
 - update_command: update a saved suggestion (1-based index)
@@ -11,7 +14,9 @@ This module provides:
 """
 
 import shlex
+import argparse
 import subprocess
+import re
 from typing import Dict, List, Optional, Set, Tuple
 
 ALLOWED_TOOLS: Set[str] = {"nmap", "nikto"}
@@ -36,48 +41,115 @@ ALLOWED_FLAGS: Dict[str, Set[str]] = {
         "-sV",
         "-sC",
         "-p",
-        "-T4",
         "-F",
         "-Pn",
         "-n",
-        "--top-ports",
-        "--open",
-        "--version-light",
         "-sL",
-        "-r",
     },
     "nikto": {
         "-h",
         "-p",
-        "-ssl",
-        "-nossl",
-        "-tls",
-        "-timeout",
-        "-nointeractive",
-        "-Display",
-        "-Plugins",
-        "-url",
     },
 }
 
 
-def allowed_command(command: str) -> Tuple[bool, str]:
+def is_valid_port(value):
+
+    '''
+    Checks if a port/port range is valid
+    First checks if a port is a single valid port
+    If not, creates regex and tries full match
+
+    Args:
+        value (str): port number or range
+    
+    Issues:
+        Values like '50-30' or '10-5' still pass the regex. Would require more robust verification
+    '''
+    try:
+        port = int(value)
+        if 1 <= port <= 65535:
+            return port
+        else:
+            raise argparse.ArgumentTypeError(
+                f"{port} is not a valid port (1-65535)."
+            )
+        
+    except ValueError:
+        
+        # Create regex for port validation
+        port_atom = r"(6553[0-5]|655[0-2]\d|65[0-4]\d{2}|6[0-4]\d{3}|[1-5]\d{4}|[1-9]\d{0,3})"
+        port_or_range = rf"{port_atom}(-{port_atom})?"
+        port_list_regex = rf"^{port_or_range}(,{port_or_range})*$"
+        PORT_VALIDATOR = re.compile(port_list_regex)
+
+        if PORT_VALIDATOR.fullmatch(value):
+            return value
+            
+        raise argparse.ArgumentTypeError(
+            f"'{value}' is not a valid port or range."
+        )
+
+def get_nmap_parser():
+    '''
+    Creates parser for the nmap command
+    Adds flags in ALLOWED_FLAGS as arguments
+    '''
+    parser = argparse.ArgumentParser(prog="nmap", add_help=False)
+
+    # Flags that take no value (booleans)
+    for flag in ALLOWED_FLAGS["nmap"]:
+        if not flag == "-p":
+            parser.add_argument(flag, action='store_true') # SYN scan
+    
+    # Flags that take a value
+    parser.add_argument('-p', '--port', type=is_valid_port, dest='port')
+
+    # 'nargs="*"' will collect all other arguments (like the target)
+    parser.add_argument('targets', nargs='*')
+    return parser
+
+
+def get_nikto_parser():
+    '''
+    Creates parser for the nikto command
+    Adds flags in ALLOWED_FLAGS as arguments
+    '''
+    parser = argparse.ArgumentParser(prog="nikto", add_help=False)
+    # --- Whitelist of allowed flags ---
+    parser.add_argument('-h', '--host', dest='host')
+    parser.add_argument('-p', '--port', type=is_valid_port, dest='port')
+    
+    return parser
+
+TOOL_PARSERS = {
+    'nmap': get_nmap_parser(),
+    'nikto': get_nikto_parser()
+}
+
+
+def safe_command(command: str) -> Tuple[bool, str]:
     """
-    Determine whether a proposed shell command is permitted.
+    Determine whether a proposed shell command is safe to run.
 
     Checks performed:
     - command is non-empty and splits into arguments
     - the tool (first argument) is in ALLOWED_TOOLS
-    - flags (arguments starting with '-') are in ALLOWED_FLAGS for the tool
     - the command string does not contain any FORBIDDEN_CHARS
-    - one of the ALLOWED_TARGETS appears as an argument
+    - the command string only contains flags listed in ALLOWED_FLAGS
+    - the command doesn't contain conflicting flags (that cause errors)
+    - the port ranges in the command are valid
+    - the specified target is in ALLOWED_TARGETS 
+    - command structure is valid, no duplicate targets etc.
 
     Returns:
         (True, "") if the command is allowed,
         otherwise (False, reason).
+
+    Please note that this check does not quarantee absolute command validity
+    and safety. There might be some cases where an unsafe command might still pass through!
     """
     try:
-        print(f"Validating command: {command}")
         args = shlex.split(command)
         tool = args[0]
     except (IndexError, ValueError):
@@ -86,23 +158,49 @@ def allowed_command(command: str) -> Tuple[bool, str]:
     if tool not in ALLOWED_TOOLS:
         return False, f"Tool '{tool}' is not allowed."
 
-    # Check flags
-    for arg in args[1:]:
-        if arg.startswith("-"):
-            if arg not in ALLOWED_FLAGS.get(tool, set()):
-                return False, f"Flag '{arg}' is not allowed for {tool}."
-
     # Forbidden characters anywhere in the command string
     if any(ch in command for ch in FORBIDDEN_CHARS):
         return False, "Command contains forbidden characters"
 
-    # Check for an allowed target in the argument list
-    for argument in args:
-        if argument in ALLOWED_TARGETS:
-            print("Valid command!\n")
-            return True, ""
+    parser = TOOL_PARSERS[tool]
 
-    return False, "Command target not allowed; must target local test containers"
+    try:
+        # Parse the command
+        known_args, unknown = parser.parse_known_args(args[1:])
+        # Check for unallowed arguments
+        if unknown:
+            return False, f"Command contains unknown or invalid arguments: {unknown}"
+        # Check for conflicting flags
+        if hasattr(known_args, 'sn') and known_args.sn and any([
+            getattr(known_args, 'sT', False),
+            getattr(known_args, 'sC', False),
+            getattr(known_args, 'sV', False)
+        ]):
+            return False, f"Command contains conflicting flags"
+        # Check parsed targets and host fields
+        targets_to_check = []
+        if hasattr(known_args, 'targets'):
+            targets_to_check.extend(known_args.targets)
+        if hasattr(known_args, 'host'):
+            targets_to_check.append(known_args.host)
+        # If target is allowed, append to approved_targets
+        approved_targets = []
+        for target in ALLOWED_TARGETS:
+            for t in targets_to_check:
+                if target == t:  # Exact match
+                    approved_targets.append(target)
+        # If more or less than 1 target, return false
+        if len(approved_targets) != 1:
+            return False, "Command target not allowed"
+        
+    except argparse.ArgumentError as e:
+        # This catches errors from our 'is_valid_port' function!
+        return False, f"Invalid argument: {e}"
+    except SystemExit:
+        # Argparse calls sys.exit() on error
+        return False, "Command has a formatting error."
+
+    return True, ""
 
 
 def validate_cmd(command: str, executed_commands: List[str]) -> Tuple[bool, str]:
@@ -118,14 +216,21 @@ def validate_cmd(command: str, executed_commands: List[str]) -> Tuple[bool, str]
         (True, "") if the command is valid and not repeated,
         otherwise (False, reason).
     """
+    print(f"Validating command: {command}")
     if not command:
         return False, "No command selected to run"
 
-    ok, reason = allowed_command(command)
-    if command in executed_commands:
-        return False, "Command already executed in this session!"
+    ok, reason = safe_command(command)
+
     if not ok:
-        return False, f"Command rejected: {reason}"
+        print(f"Error: {reason}\n")
+        return False, f"Unsafe command: {reason}"
+    
+    if command in executed_commands:
+        print("Command already executed in this session!\n")
+        return False, "Command already executed in this session!"
+
+    print("Valid command!\n")
     return True, ""
 
 
